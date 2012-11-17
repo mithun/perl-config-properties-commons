@@ -134,8 +134,9 @@ sub new {
 
     # Bless object
     my $self = {
-        _options    => \%options,
-        _seen_files => {},
+        _options      => \%options,
+        _seen_files   => {},
+        _current_file => '',
     };
     bless $self, $class;
 
@@ -178,7 +179,7 @@ sub _esc_key {
     $key =~ s{(?<!\\)\s}{'\ '}gex;
 
     # Escape leading '!'
-    $key =~ s{^(?<!\\)\!}{'\!'}gex;
+    $key =~ s{^\!}{'\!'}gex;
 
     return $key;
 } ## end sub _esc_key
