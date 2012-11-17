@@ -7,22 +7,116 @@ use strict;
 use warnings FATAL => 'all';
 use Carp qw(croak carp);
 
+use String::Util qw(no_space);
+use Params::Validate qw(validate_with :types);
+
 #######################
 # VERSION
 #######################
 our $VERSION = '0.01';
 
 #######################
-# EXPORT
+# CONSTRUCTOR
 #######################
-use base qw(Exporter);
-our ( @EXPORT, @EXPORT_OK, %EXPORT_TAGS );
+sub new {
+    my ( $class, @args ) = @_;
 
-@EXPORT      = qw();
-@EXPORT_OK   = qw();
-%EXPORT_TAGS = ( all => [qw()] );
-Exporter::export_tags('all');
-Exporter::export_ok_tags('all');
+    # Process Options
+    my %options = validate_with(
+
+        # Name used in validation errors
+        called => 'The ' . __PACKAGE__ . ' Constructor',
+
+        # Options to process
+        params => \@args,
+
+        # Params Validate Options:
+
+        # Normalize key names. Allow leading '-' and make case-insensitive
+        normalize_keys => sub {
+            my ($_key) = @_;
+            $_key = no_space($_key);
+            $_key =~ s{^\-+}{}x;
+            $_key = lc($_key);
+            return $_key;
+        },
+
+        # Do not Allow extra options
+        allow_extra => 0,
+
+        # Option Spec
+        spec => {
+
+            # List delimiter - this identifies multi-token values
+            list_delimiter => {
+                optional => 1,
+                type     => SCALAR,
+                default  => ',',
+            },
+
+            # Include keyword
+            include_keyword => {
+                optional => 1,
+                type     => SCALAR,
+                default  => 'include',
+            },
+
+            # Include basedir
+            includes_basepath => {
+                optional => 1,
+                type     => SCALAR,
+                default  => undef,
+            },
+
+            # Process Includes?
+            process_includes => {
+                optional => 1,
+                type     => SCALAR,
+                regex    => qr{^[01]$}x,
+                default  => 1,
+            },
+
+            # Allow recursive includes?
+            include_recursive => {
+                optional => 1,
+                type     => SCALAR,
+                regex    => qr{^[01]$}x,
+                default  => 0,
+            },
+
+            # Process property references?
+            process_references => {
+                optional => 1,
+                type     => SCALAR,
+                regex    => qr{^[01]$}x,
+                default  => 1,
+            },
+
+            # Force values to be array-refs
+            force_value_arrayref => {
+                optional => 1,
+                type     => SCALAR,
+                regex    => qr{^[01]$}x,
+                default  => 0,
+            },
+
+            # Save properties with multiple value tokens on a single line
+            save_combine_tokens => {
+                optional => 1,
+                type     => SCALAR,
+                regex    => qr{^[01]$}x,
+                default  => 0,
+            },
+        },
+    );
+
+    # Bless object
+    my $self = { _options => \%options, };
+    bless $self, $class;
+
+    # Return object
+    return $self;
+} ## end sub new
 
 #######################
 1;
