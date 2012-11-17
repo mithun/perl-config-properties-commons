@@ -16,6 +16,89 @@ use Params::Validate qw(validate_with :types);
 our $VERSION = '0.01';
 
 #######################
+# PARAM SPECS
+#######################
+
+# Load spec
+my %pv_load_spec = (
+
+    # List delimiter - this identifies multi-token values
+    list_delimiter => {
+        optional => 1,
+        type     => SCALAR,
+        default  => ',',
+    },
+
+    # Include keyword
+    include_keyword => {
+        optional => 1,
+        type     => SCALAR,
+        default  => 'include',
+    },
+
+    # Include basedir
+    includes_basepath => {
+        optional => 1,
+        type     => SCALAR,
+        default  => undef,
+    },
+
+    # Process Includes?
+    process_includes => {
+        optional => 1,
+        type     => SCALAR,
+        regex    => qr{^[01]$}x,
+        default  => 1,
+    },
+
+    # Allow recursive includes?
+    include_recursive => {
+        optional => 1,
+        type     => SCALAR,
+        regex    => qr{^[01]$}x,
+        default  => 0,
+    },
+
+    # Process property references?
+    process_references => {
+        optional => 1,
+        type     => SCALAR,
+        regex    => qr{^[01]$}x,
+        default  => 1,
+    },
+
+    # Force values to be array-refs
+    force_value_arrayref => {
+        optional => 1,
+        type     => SCALAR,
+        regex    => qr{^[01]$}x,
+        default  => 0,
+    },
+);
+
+# Save Spec
+my %pv_save_spec = (
+
+    # Save properties with multiple value tokens on a single line
+    save_combine_tokens => {
+        optional => 1,
+        type     => SCALAR,
+        regex    => qr{^[01]$}x,
+        default  => 0,
+    },
+);
+
+# Normalizer
+#   Allow leading '-' and make case-insensitive
+my $pv_key_normalizer = sub {
+    my ($_key) = @_;
+    $_key = no_space($_key);
+    $_key =~ s{^\-+}{}x;
+    $_key = lc($_key);
+    return $_key;
+};
+
+#######################
 # CONSTRUCTOR
 #######################
 sub new {
@@ -30,84 +113,14 @@ sub new {
         # Options to process
         params => \@args,
 
-        # Params Validate Options:
-
-        # Normalize key names. Allow leading '-' and make case-insensitive
-        normalize_keys => sub {
-            my ($_key) = @_;
-            $_key = no_space($_key);
-            $_key =~ s{^\-+}{}x;
-            $_key = lc($_key);
-            return $_key;
-        },
+        # Normalize key names.
+        normalize_keys => $pv_key_normalizer,
 
         # Do not Allow extra options
         allow_extra => 0,
 
         # Option Spec
-        spec => {
-
-            # List delimiter - this identifies multi-token values
-            list_delimiter => {
-                optional => 1,
-                type     => SCALAR,
-                default  => ',',
-            },
-
-            # Include keyword
-            include_keyword => {
-                optional => 1,
-                type     => SCALAR,
-                default  => 'include',
-            },
-
-            # Include basedir
-            includes_basepath => {
-                optional => 1,
-                type     => SCALAR,
-                default  => undef,
-            },
-
-            # Process Includes?
-            process_includes => {
-                optional => 1,
-                type     => SCALAR,
-                regex    => qr{^[01]$}x,
-                default  => 1,
-            },
-
-            # Allow recursive includes?
-            include_recursive => {
-                optional => 1,
-                type     => SCALAR,
-                regex    => qr{^[01]$}x,
-                default  => 0,
-            },
-
-            # Process property references?
-            process_references => {
-                optional => 1,
-                type     => SCALAR,
-                regex    => qr{^[01]$}x,
-                default  => 1,
-            },
-
-            # Force values to be array-refs
-            force_value_arrayref => {
-                optional => 1,
-                type     => SCALAR,
-                regex    => qr{^[01]$}x,
-                default  => 0,
-            },
-
-            # Save properties with multiple value tokens on a single line
-            save_combine_tokens => {
-                optional => 1,
-                type     => SCALAR,
-                regex    => qr{^[01]$}x,
-                default  => 0,
-            },
-        },
+        spec => { %pv_load_spec, %pv_save_spec, },
     );
 
     # Bless object
