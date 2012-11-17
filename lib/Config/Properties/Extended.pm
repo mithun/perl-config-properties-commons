@@ -7,6 +7,7 @@ use strict;
 use warnings FATAL => 'all';
 use Carp qw(croak carp);
 
+use String::Escape qw(backslash unbackslash);
 use String::Util qw(no_space);
 use Params::Validate qw(validate_with :types);
 
@@ -86,6 +87,14 @@ my %pv_save_spec = (
         regex    => qr{^[01]$}x,
         default  => 0,
     },
+
+    # Wrap and save
+    save_wrapped => {
+        optional => 1,
+        type     => SCALAR,
+        regex    => qr{^[01]$}x,
+        default  => 1,
+    },
 );
 
 # Normalizer
@@ -134,6 +143,61 @@ sub new {
     return $self;
 } ## end sub new
 
+#######################
+# PUBLIC METHODS
+#######################
+
+#######################
+# INTERNAL METHODS
+#######################
+
+#######################
+# INTERNAL UTILS
+#######################
+
+# Seperator regex
+sub _sep_regex {
+
+    # Split key-value that is seperated by:
+    #   1. '='
+    #   2. ':'
+    #   3. Whitespace
+    # Where neither of them are backslash escaped
+    # Also, any surrounding whitespace is ignored
+    return qr{\s*(?: (?: (?<!\\) [\=\:\s] ) )\s*}x;
+} ## end sub _sep_regex
+
+# Escape key literals
+sub _esc_key {
+    my ($key) = @_;
+
+    # Escape un-printable
+    $key = backslash($key);
+
+    # Escape whitespace
+    $key =~ s{(?<!\\)\s}{'\ '}gex;
+
+    # Escape leading '!'
+    $key =~ s{^(?<!\\)\!}{'\!'}gex;
+
+    return $key;
+} ## end sub _esc_key
+
+# Unescape key
+sub _unesc_key {
+    my ($key) = @_;
+
+    # Escape leading '!'
+    $key =~ s{^\\\!}{'!'}gex;
+
+    # Escape whitespace
+    $key =~ s{\\\s}{' '}gex;
+
+    # Escape un-printable
+    $key = unbackslash($key);
+
+    return $key;
+} ## end sub _unesc_key
 #######################
 1;
 
