@@ -30,12 +30,15 @@ my $builder = Module::Build->new(
     create_license     => 1,
     create_makefile_pl => 'traditional',
     meta_merge         => {
-        keywords  => [qw()],
+        no_index => { directory => ['.author'], },
+        keywords  => [qw(java properties apache common config)],
         resources => {
             bugtracker =>
                 'http://rt.cpan.org/Public/Dist/Display.html?Name=Config-Properties-Extended',
-            repository => 'git://github.com/mithun/perl-config-properties-extended.git',
-            homepage   => 'https://github.com/mithun/perl-config-properties-extended',
+            repository =>
+                'git://github.com/mithun/perl-config-properties-extended.git',
+            homepage =>
+                'https://github.com/mithun/perl-config-properties-extended',
         },
     },
 );
