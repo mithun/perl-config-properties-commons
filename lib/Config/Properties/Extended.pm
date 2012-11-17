@@ -137,6 +137,7 @@ sub new {
         _options      => \%options,
         _seen_files   => {},
         _current_file => '',
+        _properties   => {},
     };
     bless $self, $class;
 
