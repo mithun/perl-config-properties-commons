@@ -7,6 +7,8 @@ use strict;
 use warnings FATAL => 'all';
 use Carp qw(croak carp);
 
+use 5.8.1;
+use File::Slurp qw(read_file);
 use String::Escape qw(backslash unbackslash);
 use String::Util qw(no_space);
 use Params::Validate qw(validate_with :types);
@@ -40,7 +42,7 @@ my %pv_load_spec = (
     # Include basedir
     includes_basepath => {
         optional => 1,
-        type     => SCALAR,
+        type     => SCALAR | UNDEF,
         default  => undef,
     },
 
@@ -117,7 +119,7 @@ sub new {
     my %options = validate_with(
 
         # Name used in validation errors
-        called => 'The ' . __PACKAGE__ . ' Constructor',
+        called => __PACKAGE__ . '::new',
 
         # Options to process
         params => \@args,
@@ -148,6 +150,43 @@ sub new {
 #######################
 # PUBLIC METHODS
 #######################
+
+# Load File
+sub load_file {
+    my ( $self, $file, @args ) = @_;
+    return unless $file;
+
+    # Process Options
+    if (@args) {
+        if ( ref $args[0] eq 'HASH' ) {
+            @args = ( { %{ $self->{_options} }, %{ $args[0] }, } );
+        }
+        else { @args = ( { %{ $self->{_options} }, @args } ); }
+    } ## end if (@args)
+    else {
+        @args = ( $self->{_options}, );
+    }
+    my %options = validate_with(
+
+        # Name used in validation errors
+        called => __PACKAGE__ . '::load_file',
+
+        # Options to process
+        params => \@args,
+
+        # Normalize key names.
+        normalize_keys => $pv_key_normalizer,
+
+        # Do not Allow extra options
+        allow_extra => 0,
+
+        # Option Spec
+        spec => { %pv_load_spec, %pv_save_spec, },
+
+    );
+
+    return %options;
+} ## end sub load_file
 
 #######################
 # INTERNAL METHODS
