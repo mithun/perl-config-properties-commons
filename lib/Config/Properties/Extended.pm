@@ -52,11 +52,11 @@ my %pv_load_spec = (
     },
 
     # Allow recursive includes?
-    include_recursive => {
+    cache_files => {
         optional => 1,
         type     => SCALAR,
         regex    => qr{^[01]$}x,
-        default  => 0,
+        default  => 1,
     },
 
     # Process property references?
@@ -124,7 +124,10 @@ sub new {
     );
 
     # Bless object
-    my $self = { _options => \%options, };
+    my $self = {
+        _options    => \%options,
+        _seen_files => {},
+    };
     bless $self, $class;
 
     # Return object
