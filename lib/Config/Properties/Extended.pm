@@ -191,13 +191,13 @@ sub load_file {
     $self->{_current_file}->{name} = $file;
     $self->{_current_file}->{base} = dirname($file);
 
-    # Mark as seen
-    $self->{_seen_files}->{$file} = 1;
-
     # Process file?
     return 1
         if ($options{cache_files}
         and $self->{_seen_files}->{$file} );
+
+    # Mark as seen
+    $self->{_seen_files}->{$file} = 1;
 
     # Read file
     my @lines = read_file(
@@ -244,6 +244,80 @@ sub load_fh {
 
     return 1;
 } ## end sub load_fh
+
+# =====================
+# GET/SET PROPERTY
+# =====================
+sub get_property {
+    my ( $self, $key ) = @_;
+    return unless exists $self->{_properties}->{$key};
+    return $self->{_properties}->{$key};
+}
+
+sub set_property {
+    my ( $self, $key, $values ) = @_;
+    return
+        unless ( ( defined $key and defined $values )
+        and hascontent($key) );
+    return if ( ref($values) and ( ref($values) ne 'ARRAY' ) );
+
+    my @new_values;
+    my $save      = undef;
+    my $old_value = $self->get_property($key);
+    @new_values = ref($values) ? @{$values} : ($values);
+
+    if ( defined $old_value ) {
+        $save = [ ( ref($old_value) ? @{$old_value} : $old_value ),
+            @new_values ];
+    }
+    else {
+        if ( $self->{_options}->{force_value_arrayref} ) {
+            $save = [@new_values];
+        }
+        else {
+            if   ( scalar(@new_values) > 1 ) { $save = [@new_values]; }
+            else                             { $save = $new_values[0]; }
+        }
+    } ## end else [ if ( defined $old_value)]
+
+    return unless defined $save;
+    $self->{_properties}->{$key} = $save;
+    return 1;
+} ## end sub set_property
+
+sub properties {
+    my ($self) = @_;
+    my %props = %{ $self->{_properties} };
+    return %props if wantarray;
+    return {%props};
+} ## end sub properties
+
+# =====================
+# CLEAR/DELETE PROPERTY
+# =====================
+sub delete_property {
+    my ( $self, $key ) = @_;
+    return
+        unless ( defined $key
+        and hascontent($key) );
+
+    return 1 unless exists $self->{_properties}->{$key};
+    delete $self->{_properties}->{$key};
+    return 1;
+} ## end sub delete_property
+
+sub clear_properties {
+    my ($self) = @_;
+    $self->{_properties} = {};
+    return 1;
+}
+
+sub reset_property {
+    my ( $self, @args ) = @_;
+    $self->delete_property(@args) or return;
+    $self->set_property(@args)    or return;
+    return 1;
+} ## end sub reset_property
 
 #######################
 # INTERNAL METHODS
@@ -438,33 +512,11 @@ sub _load {
         } ## end if ( $options{process_includes...})
 
         # Save key/value
-        if ( exists $self->{_properties}->{$key} ) {
-            my $_old_key = $self->{_properties}->{$key};
-
-            if ( ref $_old_key ) {
-                push(
-                    @{ $self->{_properties}->{$key} },
-                    @interpolated_tokens
-                );
-            } ## end if ( ref $_old_key )
-            else {
-                $self->{_properties}->{$key}
-                    = [ $self->{_properties}->{$key}, @interpolated_tokens ];
-            }
-        } ## end if ( exists $self->{_properties...})
-        else {
-            if ( $options{force_value_arrayref} ) {
-                $self->{_properties}->{$key} = [@interpolated_tokens];
-            }
-            else {
-                if ( scalar(@interpolated_tokens) > 1 ) {
-                    $self->{_properties}->{$key} = [@interpolated_tokens];
-                }
-                else {
-                    $self->{_properties}->{$key} = $interpolated_tokens[0];
-                }
-            } ## end else [ if ( $options{force_value_arrayref...})]
-        } ## end else [ if ( exists $self->{_properties...})]
+        my $tmp_fvaf = $self->{_options}->{force_value_arrayref};
+        $self->{_options}->{force_value_arrayref}
+            = $options{force_value_arrayref};
+        $self->set_property( $key, [@interpolated_tokens] );
+        $self->{_options}->{force_value_arrayref} = $tmp_fvaf;
     } ## end while (@lines)
 
     return 1;
