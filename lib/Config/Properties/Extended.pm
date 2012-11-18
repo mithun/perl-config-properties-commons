@@ -493,7 +493,7 @@ sub _interpolate {
     if ( ref $def_key ) {
 
         # Return if defined key has multiple values
-        return $int_key if ( length( @{$def_key} ) > 1 );
+        return $int_key if ( scalar( @{$def_key} ) > 1 );
 
         # Do interpolation if we are forcing array refs
         if ( $options{force_value_arrayref} ) {
