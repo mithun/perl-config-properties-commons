@@ -313,9 +313,6 @@ sub _load {
             croak "Invalid key/value format! : $line \n";
         }
 
-        # Force value to an empty string
-        $value ||= '';
-
         # Unescape
         $key   = _unesc_key($key);
         $value = _unesc_val($value);
