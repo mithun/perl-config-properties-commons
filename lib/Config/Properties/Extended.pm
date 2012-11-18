@@ -113,6 +113,43 @@ my %pv_save_spec = (
         regex    => qr{^[01]$}x,
         default  => 1,
     },
+
+    # Wrap length
+    save_wrapped_len => {
+        optional => 1,
+        type     => SCALAR,
+        regex    => qr{^\d+$}x,
+        default  => 76,
+    },
+
+    # key=value separator
+    save_separator => {
+        optional => 1,
+        type     => SCALAR,
+        regex    => qr{\s*[=:\s]\s*}x,
+        default  => ' = ',
+    },
+
+    # Save sorting routine
+    save_sorter => {
+        optional => 1,
+        type     => CODEREF,
+        default  => sub { lc( $_[0] ) cmp lc( $_[1] ); },
+    },
+
+    # Save Header
+    save_header => {
+        optional => 1,
+        type     => SCALAR,
+        default  => '#' x 15,
+    },
+
+    # Save footer
+    save_footer => {
+        optional => 1,
+        type     => SCALAR,
+        default  => '#' x 15,
+    },
 );
 
 # Normalizer
