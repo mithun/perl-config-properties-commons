@@ -8,15 +8,15 @@ use warnings FATAL => 'all';
 use Carp qw(croak carp);
 
 use 5.8.1;
-use File::Slurp qw(read_file);
-use String::Util qw(no_space fullchomp hascontent trim);
-use Params::Validate qw(validate_with :types);
-use Cwd qw(abs_path);
-use File::Basename qw(dirname);
-use File::Spec qw();
-use List::Util qw(max);
-use Text::Wrap qw();
 use Encode qw();
+use File::Spec qw();
+use Text::Wrap qw();
+use Cwd qw(abs_path);
+use List::Util qw(max);
+use File::Slurp qw(read_file);
+use File::Basename qw(dirname);
+use Params::Validate qw(validate_with :types);
+use String::Util qw(no_space fullchomp hascontent trim);
 
 #######################
 # VERSION

@@ -24,7 +24,15 @@ my $builder = Module::Build->new(
         'version'    => 0,
     },
     requires => {
-
+        'perl'             => '5.8.1',
+        'Encode'           => '2.12',
+        'File::Basename'   => 0,
+        'File::Slurp'      => 0,
+        'File::Spec'       => 0,
+        'List::Util'       => 0,
+        'Params::Validate' => '1.03',
+        'String::Util'     => 0,
+        'Text::Wrap'       => 0,
     },
     add_to_cleanup     => ['Config-Properties-Extended-*'],
     create_license     => 1,
