@@ -157,8 +157,11 @@ sub new {
     my $self = {
         _options      => \%options,
         _seen_files   => {},
-        _current_file => {},
-        _properties   => {%defaults},
+        _current_file => {
+            name => '',
+            base => '',
+        },
+        _properties => {%defaults},
     };
     bless $self, $class;
 
@@ -170,39 +173,15 @@ sub new {
 # PUBLIC METHODS
 #######################
 
+# =====================
 # Load File
+# =====================
 sub load_file {
     my ( $self, $file, @args ) = @_;
-    return unless $file;
+    croak "Filename not provided!\n" unless $file;
 
     # Process Options
-    if (@args) {
-        if ( ref $args[0] eq 'HASH' ) {
-            @args = ( { %{ $self->{_options} }, %{ $args[0] }, } );
-        }
-        else { @args = ( { %{ $self->{_options} }, @args } ); }
-    } ## end if (@args)
-    else {
-        @args = ( $self->{_options}, );
-    }
-    my %options = validate_with(
-
-        # Name used in validation errors
-        called => __PACKAGE__ . '::load_file',
-
-        # Options to process
-        params => \@args,
-
-        # Normalize key names.
-        normalize_keys => $pv_key_normalizer,
-
-        # Do not Allow extra options
-        allow_extra => 0,
-
-        # Option Spec
-        spec => { %pv_load_spec, %pv_save_spec, },
-
-    );
+    my %options = %{ $self->_set_options(@args) };
 
     # Check file
     $file = abs_path($file);
@@ -220,7 +199,7 @@ sub load_file {
         if ($options{cache_files}
         and $self->{_seen_files}->{$file} );
 
-    # Load file
+    # Read file
     my @lines = read_file(
         $file,
         binmode => ':utf8',
@@ -238,11 +217,78 @@ sub load_file {
     return 1;
 } ## end sub load_file
 
+# =====================
+# Load filehandle
+# =====================
+sub load_fh {
+    my ( $self, $fh, @args ) = @_;
+    croak "Input might not be a file handle!\n" unless ref $fh;
+
+    # Process Options
+    my %options = %{ $self->_set_options(@args) };
+
+    # Read file
+    my @lines = read_file(
+        $fh,
+        binmode => ':utf8',
+        chomp   => 1,
+    );
+
+    # Load properties
+    $self->_load(
+        {
+            lines   => \@lines,
+            options => \%options,
+        }
+    );
+
+    return 1;
+} ## end sub load_fh
+
 #######################
 # INTERNAL METHODS
 #######################
 
+# =====================
+# Process options
+# =====================
+sub _set_options {
+    my ( $self, @args ) = @_;
+
+    if (@args) {
+        if ( ref $args[0] eq 'HASH' ) {
+            @args = ( { %{ $self->{_options} }, %{ $args[0] }, } );
+        }
+        else { @args = ( { %{ $self->{_options} }, @args } ); }
+    } ## end if (@args)
+    else {
+        @args = ( $self->{_options}, );
+    }
+    my %options = validate_with(
+
+        # Name used in validation errors
+        called => __PACKAGE__ . '::_set_options',
+
+        # Options to process
+        params => \@args,
+
+        # Normalize key names.
+        normalize_keys => $pv_key_normalizer,
+
+        # Do not Allow extra options
+        allow_extra => 0,
+
+        # Option Spec
+        spec => { %pv_load_spec, %pv_save_spec, },
+
+    );
+
+    return \%options;
+} ## end sub _set_options
+
+# =====================
 # Load Properties
+# =====================
 sub _load {
     my ( $self, $in ) = @_;
     my @lines   = $in->{lines}   ? @{ $in->{lines} }   : ();
@@ -424,7 +470,9 @@ sub _load {
     return 1;
 } ## end sub _load
 
+# =====================
 # Interpolate tokens
+# =====================
 sub _interpolate {
     my ( $self, $in ) = @_;
     my $key     = $in->{key};
@@ -463,7 +511,9 @@ sub _interpolate {
 # INTERNAL UTILS
 #######################
 
+# =====================
 # Seperator regex
+# =====================
 sub _sep_regex {
 
     # Split key-value that is seperated by:
@@ -475,7 +525,9 @@ sub _sep_regex {
     return qr{\s*(?: (?: (?<!\\) [\=\:\s] ) )\s*}x;
 } ## end sub _sep_regex
 
-# Escape key literals
+# =====================
+# Escape Routines
+# =====================
 sub _esc_key {
     my ($key) = @_;
 
@@ -494,7 +546,18 @@ sub _esc_key {
     return $key;
 } ## end sub _esc_key
 
-# Unescape key
+sub _esc_val {
+    my ($val) = @_;
+
+    # Escape unprintable
+    $val =~ s{([^\x20-\x7e])}{sprintf ("\\u%04x", ord $1)}gex;
+
+    return $val;
+} ## end sub _esc_val
+
+# =====================
+# Unescape Routines
+# =====================
 sub _unesc_key {
     my ($key) = @_;
 
@@ -513,17 +576,6 @@ sub _unesc_key {
     return $key;
 } ## end sub _unesc_key
 
-# Escape value literals
-sub _esc_val {
-    my ($val) = @_;
-
-    # Escape unprintable
-    $val =~ s{([^\x20-\x7e])}{sprintf ("\\u%04x", ord $1)}gex;
-
-    return $val;
-} ## end sub _esc_val
-
-# Unescape Value
 sub _unesc_val {
     my ($val) = @_;
 
