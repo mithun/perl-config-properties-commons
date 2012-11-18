@@ -86,6 +86,13 @@ my %pv_load_spec = (
         type    => CODEREF,
         default => sub { return @_; },
     },
+
+    # Allow defaults
+    defaults => {
+        optional => 1,
+        type     => HASHREF,
+        default  => {},
+    },
 );
 
 # Save Spec
@@ -143,12 +150,15 @@ sub new {
         spec => { %pv_load_spec, %pv_save_spec, },
     );
 
+    # Get default properties
+    my %defaults = %{ $options{defaults} };
+
     # Bless object
     my $self = {
         _options      => \%options,
         _seen_files   => {},
         _current_file => {},
-        _properties   => {},
+        _properties   => {%defaults},
     };
     bless $self, $class;
 
