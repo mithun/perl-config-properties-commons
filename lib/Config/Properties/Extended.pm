@@ -14,6 +14,9 @@ use Params::Validate qw(validate_with :types);
 use Cwd qw(abs_path);
 use File::Basename qw(dirname);
 use File::Spec qw();
+use List::Util qw(max);
+use Text::Wrap qw();
+use Encode qw();
 
 #######################
 # VERSION
@@ -126,7 +129,7 @@ my %pv_save_spec = (
     save_separator => {
         optional => 1,
         type     => SCALAR,
-        regex    => qr{\s*[=:\s]\s*}x,
+        regex    => qr{^\s*[=:\s]\s*$}x,
         default  => ' = ',
     },
 
@@ -134,7 +137,7 @@ my %pv_save_spec = (
     save_sorter => {
         optional => 1,
         type     => CODEREF,
-        default  => sub { lc( $_[0] ) cmp lc( $_[1] ); },
+        default  => sub ($$) { lc( $_[0] ) cmp lc( $_[1] ); },
     },
 
     # Save Header
@@ -211,34 +214,41 @@ sub new {
 #######################
 
 # =====================
-# Load File
+# Load
 # =====================
-sub load_file {
-    my ( $self, $file, @args ) = @_;
-    croak "Filename not provided!\n" unless $file;
+sub load {
+    my ( $self, $from, @args ) = @_;
+    return unless defined $from;
 
     # Process Options
     my %options = %{ $self->_set_options(@args) };
 
-    # Check file
-    $file = abs_path($file);
-    croak "File $file does not exist!" unless ( $file and -f $file );
+    unless ( ref $from ) {
 
-    # Set current file
-    $self->{_current_file}->{name} = $file;
-    $self->{_current_file}->{base} = dirname($file);
+        # Not a reference. _should_ be a file
 
-    # Process file?
-    return 1
-        if ($options{cache_files}
-        and $self->{_seen_files}->{$file} );
+        my $file = $from;
 
-    # Mark as seen
-    $self->{_seen_files}->{$file} = 1;
+        # Check file
+        $file = abs_path($file);
+        croak "File $file does not exist!" unless ( $file and -f $file );
+
+        # Set current file
+        $self->{_current_file}->{name} = $file;
+        $self->{_current_file}->{base} = dirname($file);
+
+        # Process file?
+        return 1
+            if ($options{cache_files}
+            and $self->{_seen_files}->{$file} );
+
+        # Mark as seen
+        $self->{_seen_files}->{$file} = 1;
+    } ## end unless ( ref $from )
 
     # Read file
     my @lines = read_file(
-        $file,
+        $from,
         binmode => ':utf8',
         chomp   => 1,
     );
@@ -252,35 +262,7 @@ sub load_file {
     );
 
     return 1;
-} ## end sub load_file
-
-# =====================
-# Load filehandle
-# =====================
-sub load_fh {
-    my ( $self, $fh, @args ) = @_;
-    croak "Input might not be a file handle!\n" unless ref $fh;
-
-    # Process Options
-    my %options = %{ $self->_set_options(@args) };
-
-    # Read file
-    my @lines = read_file(
-        $fh,
-        binmode => ':utf8',
-        chomp   => 1,
-    );
-
-    # Load properties
-    $self->_load(
-        {
-            lines   => \@lines,
-            options => \%options,
-        }
-    );
-
-    return 1;
-} ## end sub load_fh
+} ## end sub load
 
 # =====================
 # GET/SET PROPERTY
@@ -355,6 +337,35 @@ sub reset_property {
     $self->set_property(@args)    or return;
     return 1;
 } ## end sub reset_property
+
+# =====================
+# SAVE PROPERTIES
+# =====================
+sub save_to_string {
+    my ( $self, @args ) = @_;
+
+    # Process Options
+    my %options = %{ $self->_set_options(@args) };
+
+    # Get string to save
+    my $save_string = $self->_save( { options => \%options, } );
+
+    return $save_string;
+} ## end sub save_to_string
+
+sub save {
+    my ( $self, $to, @args ) = @_;
+    return unless defined $to;
+
+    # Get a string dump
+    my $str = $self->save_to_string(@args);
+
+    # Write to file/handle
+    write_file( $to, { binmode => ':utf8', }, Encode::encode_utf8($str) );
+
+    # Done
+    return 1;
+} ## end sub save
 
 #######################
 # INTERNAL METHODS
@@ -596,6 +607,126 @@ sub _interpolate {
     return $int_key;
 } ## end sub _interpolate
 
+# =====================
+# Save Properties
+# =====================
+sub _save {
+    my ( $self, $in ) = @_;
+    my %options = %{ $in->{options} };
+
+    # Output String
+    my $out_str;
+
+    # Get flattened hash
+    my %props = $self->properties();
+
+    # Write Header
+    $out_str = fullchomp( $options{save_header} ) . "\n\n";
+
+    # Get max property length
+    my $max_prop_len = max map { length $_ } ( keys %props );
+
+    # Get key/value separator
+    my $out_sep = $options{save_separator};
+
+    # Get separator length
+    my $sep_len = length( $options{save_separator} );
+
+    # Do wrap?
+    my $do_wrap = $options{save_wrapped};
+    $do_wrap = 0
+        if ( ( $max_prop_len + $sep_len + 4 ) >= $options{save_wrapped_len} );
+
+    # Cycle thru' properties
+    my $_sorter = $options{save_sorter};
+    foreach my $key ( sort $_sorter keys %props ) {
+        next unless defined $props{$key};
+        my $value = $props{$key};
+
+        # Split value into tokens
+        my @raw_value_tokens;
+        if ( ref($value) ) {
+            croak "${key}'s value is an invalid reference!"
+                unless ( ref($value) eq 'ARRAY' );
+            @raw_value_tokens = @{$value};
+        }
+        else {
+            @raw_value_tokens = ($value);
+        }
+
+        # Escape
+        $key = _esc_key($key);
+        my @value_tokens;
+        foreach ( grep { defined $_ } @raw_value_tokens ) {
+            push @value_tokens, _esc_val( Encode::encode_utf8($_) );
+        }
+
+        # Save
+        if ( $options{save_combine_tokens} ) {
+            croak "Cannot combine tokens without a delimiter!"
+                unless defined $options{token_delimiter};
+
+            # Get delimiter
+            # Append a whitespace to it for read-ability
+            my $_delim = $options{token_delimiter};
+            $_delim .= ' ' unless ( $_delim =~ m{\s+$}x );
+
+            # Join
+            my $_val_str = join( $_delim, @value_tokens );
+
+            # Wrap
+            if ($do_wrap) {
+                $_val_str = _wrap(
+                    {
+                        string => $_val_str,
+                        options =>
+                            { %options, key_len => length($key) + $sep_len, },
+                    }
+                );
+            } ## end if ($do_wrap)
+
+            # Write
+            $out_str .= sprintf( "%s${out_sep}%s\n", $key, $_val_str );
+        } ## end if ( $options{save_combine_tokens...})
+        else {
+
+            # Add surrounding blank lines for read-ability
+            if ( scalar(@value_tokens) > 1 ) {
+                $out_str .= "\n" unless ( $out_str =~ m{\n{2,}}mx );
+            }
+
+            foreach my $token (@value_tokens) {
+                my $_val_str;
+
+                # Wrap
+                if ($do_wrap) {
+                    $_val_str = _wrap(
+                        {
+                            string  => $token,
+                            options => {
+                                %options, key_len => length($key) + $sep_len,
+                            },
+                        }
+                    );
+                } ## end if ($do_wrap)
+                else { $_val_str = $token; }
+
+                # Write
+                $out_str .= sprintf( "%s${out_sep}%s\n", $key, $_val_str );
+            } ## end foreach my $token (@value_tokens)
+
+            # Add surrounding blank lines for read-ability
+            if ( scalar(@value_tokens) > 1 ) { $out_str .= "\n"; }
+        } ## end else [ if ( $options{save_combine_tokens...})]
+    } ## end foreach my $key ( sort $_sorter...)
+
+    # Write footer
+    $out_str .= "\n" . fullchomp( $options{save_footer} ) . "\n\n";
+
+    # Done
+    return $out_str;
+} ## end sub _save
+
 #######################
 # INTERNAL UTILS
 #######################
@@ -673,6 +804,38 @@ sub _unesc_val {
 
     return $val;
 } ## end sub _unesc_val
+
+# =====================
+# VALUE WRAPPER
+# =====================
+sub _wrap {
+    my ($in)    = @_;
+    my $text    = $in->{string};
+    my %options = %{ $in->{options} };
+
+    # Wrap column width
+    my $wrap_to = $options{save_wrapped_len} - $options{key_len};
+
+    # Text::Wrap settings
+    local $Text::Wrap::columns   = $wrap_to;      # Columns
+    local $Text::Wrap::break     = qr{(?<!\\)}x;  # Break at NOT '\'
+    local $Text::Wrap::unexpand  = 0;             # Don't mess with tabs
+    local $Text::Wrap::separator = "\\\n";        # Use a '\' separator
+    local $Text::Wrap::huge = 'overflow';  # Leave unbreakable lines alone
+
+    # Wrap
+    my $wrapped = Text::Wrap::wrap(
+        '',                                # Initial tab is empty
+        ' ' x ( $options{key_len} + 1 ), # Subseq tab is aligned to end of key
+        $text,                           # Text to wrap
+    );
+
+    # Remove EOL
+    $wrapped = fullchomp($wrapped);
+
+    # Return
+    return $wrapped;
+} ## end sub _wrap
 
 #######################
 1;
