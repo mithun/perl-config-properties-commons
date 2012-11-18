@@ -11,7 +11,8 @@ use Test::More;
 local $| = 1;
 
 # Test _use_
-use_ok('Config::Properties::Extended') || BAIL_OUT('Failed to load Config::Properties::Extended');
+use_ok('Config::Properties::Commons')
+    || BAIL_OUT('Failed to load Config::Properties::Commons');
 
 # Done
 done_testing();

@@ -1,4 +1,4 @@
-package Config::Properties::Extended;
+package Config::Properties::Commons;
 
 #######################
 # LOAD MODULES
@@ -849,7 +849,7 @@ __END__
 
 =head1 NAME
 
-Config::Properties::Extended
+Config::Properties::Commons
 
 =head1 SYNOPSIS
 
@@ -860,8 +860,8 @@ Config::Properties::Extended
 =head1 BUGS AND LIMITATIONS
 
 Please report any bugs or feature requests to
-C<bug-config-properties-extended@rt.cpan.org>, or through the web interface at
-L<http://rt.cpan.org/Public/Dist/Display.html?Name=Config-Properties-Extended>
+C<bug-config-properties-commons@rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org/Public/Dist/Display.html?Name=Config-Properties-Commons>
 
 =head1 AUTHOR
 
