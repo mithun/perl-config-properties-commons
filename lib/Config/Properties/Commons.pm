@@ -96,6 +96,13 @@ my %pv_load_spec = (
         type     => HASHREF,
         default  => {},
     },
+
+    # Allow filename for auto-load
+    load_file => {
+        optional => 1,
+        type     => SCALAR | HANDLE | UNDEF,
+        default  => undef,
+    },
 );
 
 # Save Spec
@@ -208,6 +215,11 @@ sub new {
         _properties => {%defaults},
     };
     bless $self, $class;
+
+    # Short-circuit _load_ if a filename is defined
+    if ( defined $options{load_file} ) {
+        $self->load( $options{load_file} );
+    }
 
     # Return object
     return $self;
