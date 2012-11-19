@@ -41,6 +41,7 @@ my %pv_load_spec = (
     include_keyword => {
         optional => 1,
         type     => SCALAR,
+        regex    => qr{^[^\s]+$}x,
         default  => 'include',
     },
 
@@ -163,7 +164,31 @@ my %pv_save_spec = (
 );
 
 # Option aliases
-my %option_aliases = ();
+my %option_aliases = (
+
+    # __PACKAGE__
+    delimiter      => 'token_delimiter',
+    include        => 'include_keyword',
+    basepath       => 'includes_basepath',
+    includes_allow => 'process_includes',
+    cache          => 'cache_files',
+    interpolate    => 'interpolation',
+    force_arrayref => 'force_value_arrayref',
+    validate       => 'callback',
+    filename       => 'load_file',
+    single_line    => 'save_combine_tokens',
+    wrap           => 'save_wrapped',
+    columns        => 'save_wrapped_len',
+    separator      => 'save_separator',
+    header         => 'save_header',
+    footer         => 'save_footer',
+
+    # Java Style
+    setListDelimiter   => 'token_delimiter',
+    setInclude         => 'include_keyword',
+    setIncludesAllowed => 'process_includes',
+    setBasePath        => 'includes_basepath',
+);
 
 # Normalizer
 #   Allow leading '-' and make case-insensitive
@@ -297,7 +322,7 @@ sub require_property {
     return $value;
 } ## end sub require_property
 
-sub set_property {
+sub add_property {
     my ( $self, @args )   = @_;
     my ( $key,  $values ) = validate_pos(
         @args,
@@ -327,22 +352,58 @@ sub set_property {
     return unless defined $save;
     $self->{_properties}->{$key} = $save;
     return 1;
-} ## end sub set_property
+} ## end sub add_property
 
+# =====================
+# QUERY PROPERTIES
+# =====================
 sub properties {
-    my ($self) = @_;
-    my %props = %{ $self->{_properties} };
+    my ( $self, $prefix, $sep ) = @_;
+
+    my %props;
+    my %_props = %{ $self->{_properties} };
+
+    if ( defined $prefix ) {
+        $sep = '.' unless defined $sep;
+        $prefix .= ${sep};
+        foreach my $_prop ( grep { /^${prefix}/x } keys %_props ) {
+            my $_p = $_prop;
+            $_p =~ s{^${prefix}}{}gx;
+            $props{$_p} = $_props{$_prop};
+        }
+    } ## end if ( defined $prefix )
+    else {
+        %props = %_props;
+    }
+
     return %props if wantarray;
     return {%props};
 } ## end sub properties
 
 sub property_names {
-    my ($self)  = @_;
+    my ( $self, $prefix ) = @_;
     my %props   = $self->properties();
     my $_sorter = $self->{_options}->{save_sorter};
     my @names   = sort $_sorter keys %props;
+    if ( defined $prefix ) {
+        @names = grep { /^${prefix}/x } @names;
+    }
     return @names;
 } ## end sub property_names
+
+sub is_empty {
+    my ($self) = @_;
+    my @keys = $self->property_names();
+    return if scalar(@keys);
+    return 1;
+} ## end sub is_empty
+
+sub has_property {
+    my ( $self, @args ) = @_;
+    my $val = $self->get_property(@args);
+    return 1 if defined $val;
+    return;
+} ## end sub has_property
 
 # =====================
 # CLEAR/DELETE PROPERTY
@@ -361,13 +422,14 @@ sub delete_property {
 sub clear_properties {
     my ($self) = @_;
     $self->{_properties} = {};
+    $self->{_seen_files} = {};
     return 1;
-}
+} ## end sub clear_properties
 
 sub reset_property {
     my ( $self, @args ) = @_;
     $self->delete_property(@args) or return;
-    $self->set_property(@args)    or return;
+    $self->add_property(@args)    or return;
     return 1;
 } ## end sub reset_property
 
@@ -408,6 +470,36 @@ sub get_files_loaded {
     my @files = sort { lc $a cmp lc $b } keys %{ $self->{_seen_files} };
     return @files;
 }
+
+#######################
+# METHOD ALIASES
+#######################
+
+## no critic (ArgUnpacking)
+
+sub load_fh         { return shift->load(@_); }
+sub load_file       { return shift->load(@_); }
+sub store           { return shift->save(@_); }
+sub save_as_string  { return shift->save_to_string(@_); }
+sub saveToString    { return shift->save_to_string(@_); }
+sub getProperty     { return shift->get_property(@_); }
+sub addProperty     { return shift->add_property(@_); }
+sub requireProperty { return shift->require_property(@_); }
+sub set_property    { return shift->reset_property(@_); }
+sub setProperty     { return shift->reset_property(@_); }
+sub changeProperty  { return shift->reset_property(@_); }
+sub clear           { return shift->clear_properties(@_); }
+sub clearProperty   { return shift->delete_property(@_); }
+sub deleteProperty  { return shift->delete_property(@_); }
+sub containsKey     { return shift->has_property(@_); }
+sub getProperties   { return shift->properties(@_); }
+sub subset          { return shift->properties(@_); }
+sub getKeys         { return shift->property_names(@_); }
+sub propertyNames   { return shift->property_names(@_); }
+sub getFileNames    { return shift->get_files_loaded(@_); }
+sub isEmpty         { return shift->is_empty(@_); }
+
+## use critic
 
 #######################
 # INTERNAL METHODS
@@ -605,7 +697,7 @@ sub _load {
         my $tmp_fvaf = $self->{_options}->{force_value_arrayref};
         $self->{_options}->{force_value_arrayref}
             = $options{force_value_arrayref};
-        $self->set_property( $key, [@interpolated_tokens] );
+        $self->add_property( $key, [@interpolated_tokens] );
         $self->{_options}->{force_value_arrayref} = $tmp_fvaf;
     } ## end while (@lines)
 
@@ -858,12 +950,16 @@ sub _wrap {
     # Wrap column width
     my $wrap_to = $options{save_wrapped_len} - $options{key_len};
 
+## no critic (PackageVars)
+
     # Text::Wrap settings
     local $Text::Wrap::columns   = $wrap_to;      # Columns
     local $Text::Wrap::break     = qr{(?<!\\)}x;  # Break at NOT '\'
     local $Text::Wrap::unexpand  = 0;             # Don't mess with tabs
     local $Text::Wrap::separator = "\\\n";        # Use a '\' separator
     local $Text::Wrap::huge = 'overflow';  # Leave unbreakable lines alone
+
+## use critic
 
     # Wrap
     my $wrapped = Text::Wrap::wrap(
