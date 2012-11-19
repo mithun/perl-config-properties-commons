@@ -155,6 +155,9 @@ my %pv_save_spec = (
     },
 );
 
+# Option aliases
+my %option_aliases = ();
+
 # Normalizer
 #   Allow leading '-' and make case-insensitive
 my $pv_key_normalizer = sub {
@@ -162,6 +165,7 @@ my $pv_key_normalizer = sub {
     $_key = no_space($_key);
     $_key =~ s{^\-+}{}x;
     $_key = lc($_key);
+    $_key = $option_aliases{$_key} if exists $option_aliases{$_key};
     return $_key;
 };
 
@@ -310,6 +314,13 @@ sub properties {
     return %props if wantarray;
     return {%props};
 } ## end sub properties
+
+sub property_names {
+    my ($self) = @_;
+    my %props = $self->properties();
+    my @names = sort { lc $a cmp lc $b } keys %props;
+    return @names;
+} ## end sub property_names
 
 # =====================
 # CLEAR/DELETE PROPERTY
