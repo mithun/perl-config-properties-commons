@@ -230,7 +230,7 @@ sub new {
 #######################
 
 # =====================
-# Load
+# LOAD
 # =====================
 sub load {
     my ( $self, $from, @args ) = @_;
@@ -337,9 +337,10 @@ sub properties {
 } ## end sub properties
 
 sub property_names {
-    my ($self) = @_;
-    my %props = $self->properties();
-    my @names = sort { lc $a cmp lc $b } keys %props;
+    my ($self)  = @_;
+    my %props   = $self->properties();
+    my $_sorter = $self->{_options}->{save_sorter};
+    my @names   = sort $_sorter keys %props;
     return @names;
 } ## end sub property_names
 
@@ -398,6 +399,15 @@ sub save {
     # Done
     return 1;
 } ## end sub save
+
+# =====================
+# FILES PROCESSED
+# =====================
+sub get_files_loaded {
+    my ($self) = @_;
+    my @files = sort { lc $a cmp lc $b } keys %{ $self->{_seen_files} };
+    return @files;
+}
 
 #######################
 # INTERNAL METHODS
