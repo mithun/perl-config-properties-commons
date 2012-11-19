@@ -7,7 +7,7 @@ use strict;
 use warnings FATAL => 'all';
 use Carp qw(croak carp);
 
-use 5.8.1;
+use 5.008_001;
 use Encode qw();
 use File::Spec qw();
 use Text::Wrap qw();
@@ -15,8 +15,8 @@ use Cwd qw(abs_path);
 use List::Util qw(max);
 use File::Slurp qw(read_file);
 use File::Basename qw(dirname);
-use Params::Validate qw(validate_with :types);
 use String::Util qw(no_space fullchomp hascontent trim);
+use Params::Validate qw(validate_with validate_pos :types);
 
 #######################
 # VERSION
@@ -234,7 +234,8 @@ sub new {
 # =====================
 sub load {
     my ( $self, $from, @args ) = @_;
-    return unless defined $from;
+    croak "File name/handle to load from is not provided"
+        unless defined $from;
 
     # Process Options
     my %options = %{ $self->_set_options(@args) };
@@ -289,12 +290,20 @@ sub get_property {
     return $self->{_properties}->{$key};
 }
 
+sub require_property {
+    my ( $self, $key ) = @_;
+    my $value = $self->get_property($key);
+    croak "Property for $key is not defined" unless defined $value;
+    return $value;
+} ## end sub require_property
+
 sub set_property {
-    my ( $self, $key, $values ) = @_;
-    return
-        unless ( ( defined $key and defined $values )
-        and hascontent($key) );
-    return if ( ref($values) and ( ref($values) ne 'ARRAY' ) );
+    my ( $self, @args )   = @_;
+    my ( $key,  $values ) = validate_pos(
+        @args,
+        { type => SCALAR, },
+        { type => SCALAR | ARRAYREF, },
+    );
 
     my @new_values;
     my $save      = undef;
