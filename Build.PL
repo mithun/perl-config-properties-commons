@@ -21,6 +21,8 @@ my $builder = Module::Build->new(
     configure_requires => { 'Module::Build' => 0.38 },
     build_requires     => {
         'Test::More' => 0,
+        'Test::Deep' => 0,
+        'File::Temp' => '0.14',
         'version'    => 0,
     },
     requires => {
@@ -38,7 +40,7 @@ my $builder = Module::Build->new(
     create_license     => 1,
     create_makefile_pl => 'traditional',
     meta_merge         => {
-        no_index => { directory => ['.author'], },
+        no_index => { directory => [ '.author', 't' ], },
         keywords  => [qw(java properties apache common config)],
         resources => {
             bugtracker =>
