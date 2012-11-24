@@ -13,8 +13,8 @@ use File::Spec qw();
 use Text::Wrap qw();
 use Cwd qw(abs_path);
 use List::Util qw(max);
-use File::Slurp qw(read_file);
 use File::Basename qw(dirname);
+use File::Slurp qw(read_file write_file);
 use String::Util qw(no_space fullchomp hascontent trim);
 use Params::Validate qw(validate_with validate_pos :types);
 
