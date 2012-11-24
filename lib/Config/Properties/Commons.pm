@@ -197,7 +197,6 @@ my $pv_key_normalizer = sub {
     $_key = no_space($_key);
     $_key =~ s{^\-+}{}x;
     $_key = lc($_key);
-    $_key = $option_aliases{$_key} if exists $option_aliases{$_key};
     return $_key;
 };
 
@@ -511,22 +510,41 @@ sub isEmpty         { return shift->is_empty(@_); }
 sub _set_options {
     my ( $self, @args ) = @_;
 
+    # Read Options
+    my $in_options = {};
     if (@args) {
         if ( ref $args[0] eq 'HASH' ) {
-            @args = ( { %{ $self->{_options} }, %{ $args[0] }, } );
+            $in_options = $args[0];
         }
-        else { @args = ( { %{ $self->{_options} }, @args } ); }
+        else {
+            $in_options = {@args};
+        }
     } ## end if (@args)
-    else {
-        @args = ( $self->{_options}, );
-    }
-    my %options = validate_with(
+
+    # Merge Options
+    my $merged_options = $self->{_options};
+    foreach my $_opt ( keys %{$in_options} ) {
+
+        # Normalize
+        $_opt = $pv_key_normalizer->($_opt);
+
+        # Resolve Aliases
+        if ( exists $option_aliases{$_opt} ) {
+            $merged_options->{ $option_aliases{$_opt} }
+                = $in_options->{$_opt};
+        }
+        else {
+            $merged_options->{$_opt} = $in_options->{$_opt};
+        }
+    } ## end foreach my $_opt ( keys %{$in_options...})
+
+    my %valid_options = validate_with(
 
         # Name used in validation errors
         called => __PACKAGE__ . '::_set_options',
 
         # Options to process
-        params => \@args,
+        params => [$merged_options],
 
         # Normalize key names.
         normalize_keys => $pv_key_normalizer,
@@ -539,7 +557,7 @@ sub _set_options {
 
     );
 
-    return \%options;
+    return \%valid_options;
 } ## end sub _set_options
 
 # =====================
