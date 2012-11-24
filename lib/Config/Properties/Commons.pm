@@ -672,6 +672,7 @@ sub _load {
         {
 
             my $_basedir = $self->{_current_file}->{base};
+            $_basedir = File::Spec->curdir() if not $_basedir;
             $_basedir = $options{includes_basepath}
                 if defined $options{includes_basepath};
 
@@ -683,15 +684,12 @@ sub _load {
                 }
                 else {
                     $_file = abs_path(
-                        File::Spec->catpath( $_basedir, $_file ) );
+                        File::Spec->catfile( $_basedir, $_file ) );
                 }
 
                 # Verify file
-                if ( not( $_file or -f $_file ) ) {
-
-                    # Skip it
-                    next;
-                }
+                next if not $_file;
+                next if not -f $_file;
 
                 # Check if this is the current file being processed
                 if ( $_file eq $self->{_current_file}->{name} ) {
