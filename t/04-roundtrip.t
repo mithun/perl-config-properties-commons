@@ -33,7 +33,7 @@ my $cpc = Config::Properties::Commons->new();
 my %props_set = (
     key  => 'value',
     foo  => [qw(bar baz)],
-    long => 'a' x 101,
+    long => 'a' x 55 . "\n" . 'A' x 55,
 );
 
 # set
