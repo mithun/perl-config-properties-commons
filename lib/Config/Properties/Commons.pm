@@ -316,9 +316,9 @@ sub get_property {
 
 sub require_property {
     my ( $self, $key ) = @_;
-    my $value = $self->get_property($key);
-    croak "Property for $key is not defined" unless defined $value;
-    return $value;
+    croak "Property for $key is not set"
+        unless exists $self->{_properties}->{$key};
+    return $self->get_property($key);
 } ## end sub require_property
 
 sub add_property {
@@ -1003,19 +1003,389 @@ __END__
 
 =head1 NAME
 
-Config::Properties::Commons
+Config::Properties::Commons - Read and write Apache Commons Configuration style Properties
 
 =head1 SYNOPSIS
 
+    use Config::Properties::Commons;
+
+    # Read
+    # =====
+
+    # Init
+    my $cpc = Config::Properties::Commons->new();
+
+    # Load
+    $cpc->load('conf.properties');
+
+    # Access
+    my $value = $cpc->get_property('key');
+
+    # Flattened hash
+    my %properties = $cpc->properties();
+
+    # Write
+    # =====
+
+    # Init
+    my $cpc = Config::Properties::Commons->new();
+
+    # Set
+    $cpc->set_property( key => 'value' );
+
+    # Save
+    $cpc->save('conf.properties');
+
+
 =head1 DESCRIPTION
 
+C<< Config::Properties::Commons >> is an attempt to provide a Perl API to read and write L<< Apache Commons Configuration|http://commons.apache.org/configuration/ >> style C<< .properties >> files.
+
+This module is an extension of L<< Config::Properties >> and provides a similar API, but is not fully backwards compatible.
+
+=head1 PROPERITES FILE SYNTAX
+
+A sample file syntax recognized by this module is shown below.
+
+    # This line is a comment
+    ! This is a comment as well
+
+    # Key value pairs can be separated by '=', ':' or whitespace
+    key1 = value1
+    key2 : value2
+    key3   value3
+
+    # Keys can contain multiple values that are either
+    #   1. Specified on multiple lines
+    #   2. OR delimiter(',') separated
+    key1 = value1.1
+    key1 = value1.2
+    key2 = value2.1, value2.2
+
+    # Long values can span multiple lines by including a
+    # '\' escape at the end of a line
+    key = this is a \
+            multi-line value
+
+    # Property files can _include_ other files as well
+    include = file1, file2, ....
+
+    # Values can reference previous parsed properties
+    base   = /etc/myapp
+    config = ${base}/config
+
+The complete syntax reference can be found at the L<< PropertiesConfiguration API Doc|http://commons.apache.org/configuration/apidocs/org/apache/commons/configuration/PropertiesConfiguration.html >>.
+
+=head1 METHODS
+
+=head2 C<< new(%options) >>
+
+    my $cpc = Config::Properties::Commons->new(\%options);
+
+This creates and returns a C<< Config::Properties::Commons >> object.
+
+=head2 Options
+
+The following options can be provided to the constructor.
+
+=over
+
+=item token_delimiter
+
+This option specifies the delimiter used to split a value into multiple tokens. The default is a C<< ',' >>. You can set this to C<< undef >> to disable splitting.
+
+=item include_keyword
+
+Use this option to set the keyword that identifies additional files to load. The default is I<< include >>.
+
+=item includes_basepath
+
+Use this option to set the base path for files being loaded via an I<< include >>. By default, files are expected to be in the same directory as the parent file being loaded. If we are loading from a file handle, then additional files are expected to be in the current directory.
+
+=item process_includes
+
+Use this option to toggle whether additional files are loaded via I<< include >> or not. Defaults to true.
+
+=item cache_files
+
+Use this option to toggle file caching. If enabled, then files are loaded only once. Disabling this is not recommended as it might lead to circular references. Default is enabled.
+
+=item interpolation
+
+Use this option to toggle property references/interpolation. Defaults to true.
+
+=item force_value_arrayref
+
+When set to true, all values are stored as an array-ref. Otherwise, single values are stored as a scalar and multiple values are stored as an array-ref. Default is false.
+
+=item callback
+
+This should be a code reference, which is called when a key/value pair is parsed. The callback is called with 2 arguments for C<< $key >> and C<< $value >> respectively, and expects the same to be returned as a list.
+
+This allows you to hook into the parsing process to normalize or perform additional operations when a key/value is parsed.
+
+    # Example to read case-insensitve properties
+    my $cpc = Config::Properties::Commons->new({
+        callback => sub {
+            my ($_k, $_v) = @_;
+            $_k = lc($_k);
+            return ( $_k, $_v );
+        },
+    });
+
+=item defaults
+
+You can provide a default set of properties as a hash-ref to the object.
+
+=item load_file
+
+Requires a filename. This is a short-circuit for C<< new(); load($file); >>. When used with the constructor, the file is loaded before returning.
+
+=item save_combine_tokens
+
+When true, keys with multiple values are saved/written on multiple lines. Otherwise they are joined using a C<< ', ' >> and written to a single line. Defaults to true.
+
+=item save_wrapped
+
+When true, long values are wrapped before being saved. Defaults to true.
+
+=item save_wrapped_len
+
+Use this option to set the maximum line length when wrapping long values. This option is ignored if wrapping is disabled. Defaults to 76.
+
+=item save_separator
+
+Use this option to set the key/value separator to be used when saving. Defaults to C<< ' = ' >>.
+
+=item save_sorter
+
+This option should provide a sort SUBNAME as specified by L<< sort|http://perldoc.perl.org/functions/sort.html >>.
+
+This is used for sorting property names to decide the order in which they are saved. Defaults to a case-insensitive alphabetical sort.
+
+=item save_header
+
+You can use this to specify a header used when saving.
+
+=item save_footer
+
+You can use this to specify a footer used when saving.
+
+=item Option Aliases
+
+The following aliases can be used for the options specified above. This is mainly available for API compatibility and ease of use.
+
+    # Option Name           Aliases
+    # ------------          ----------------------------------
+    token_delimiter         delimiter       setListDelimiter
+    include_keyword         include         setInclude
+    includes_basepath       basepath        setBasePath
+    process_includes        includes_allow  setIncludesAllowed
+    cache_files             cache
+    interpolation           interpolate
+    force_value_arrayref    force_arrayref
+    callback                validate
+    load_file               filename
+    save_combine_tokens     single_line
+    save_wrapped            wrap
+    save_wrapped_len        columns
+    save_separator          separator
+    save_header             header
+    save_footer             footer
+
+=back
+
+=head2 Reading and Writing Files
+
+=head3 C<< load($file, \%options) >>
+
+    $cpc->load($file); # Parse and Load properties from a file
+    $cpc->load($fh);   # Parse and Load properties from a file handle
+
+This method reads, parses and loads the properties from a file-name or a file-handle. The file is read through a C<< ':utf8' >> layer. An exception is thrown in case of parse failures.
+
+C<< load() >> is an I<< additive >> operation. i.e, you can load multiple files and any previously loaded properties are either updated or preserved.
+
+    $cpc->load('file1');
+    $cpc->load('file2');
+
+Any options provided to the constructor can be set/overridden here as well.
+
+This method can also be called using the C<< load_fh() >> or C<< load_file() >> aliases.
+
+=head3 C<< save($file, \%options) >>
+
+    $cpc->save($file); # Saves properties to a file
+    $cpc->save($fh);   # Saves properties to a file-handle
+
+This method saves all properties set to a provided file or file-handle via a C<< ':utf8' >> layer. Existing files are overwritten. Original file format or the order of properties set is not preserved.
+
+Any options provided to the constructor can be set/overridden here as well.
+
+This method can also be called using the C<< store() >> alias.
+
+=head3 C<< save_to_string(\%options) >>
+
+    my $text = $cpc->save_to_string();
+
+This is identical to C<< save() >>, but returns a single string with the content.
+
+Any options provided to the constructor can be set/overridden here as well.
+
+This method can also be called using the C<< save_as_string() >> or C<< saveToString() >> aliases.
+
+=head3 C<< get_files_loaded() >>
+
+    my @file_list = $cpc->get_files_loaded();
+
+This method returns a list of files loaded by the object. This, of course, is available only when properties were loaded via file-names and not handles. This also includes any I<< include-ded >> files.
+
+This method can also be called using the C<< getFileNames() >> alias.
+
+=head2 Get Properties
+
+=head3 C<< get_property($key) >>
+
+    my $value = $cpc->get_property($key);
+
+This method returns the value for C<< $key >> or undef if a property for C<< $key >> is not set.
+
+This method can also be called using the C<< getProperty() >> alias.
+
+=head3 C<< require_property($key) >>
+
+This method is similar to C<< get_property() >>, but throws an exception if a property for C<< $key >> is not set.
+
+This method can also be called using the C<< requireProperty() >> alias.
+
+=head3 C<< properties($prefix, $separator) >>
+
+    my %properties = $cpc->properties();
+
+This method returns a flattened hashref (or hash in list context) of the properties set in the object.
+
+If a C<< $prefix >> is specified, only properties that begin with C<< $prefix >> is returned with the C<< $prefix >> removed. For e.g.,
+
+    # Properties
+    env.key1 = value1
+    env.key2 = value2
+
+    # Get all 'env' properties
+    my %env_props = $cpc->properties('env');
+
+    # Now %env_props looks like -
+    %env_props = (
+        key1 => 'value1',
+        key2 => 'value2',
+    );
+
+The default seaparator C<< '.' >> can be overridden using the second argument.
+
+This method can also be called using the C<< getProperties() >> or C<< subset() >> aliases.
+
+=head3 C<< property_names() >>
+
+    my @names = $cpc->propery_names();
+
+This method returns a list of property names set in the object.
+
+This method can also be called using the C<< propertyNames() >> or C<< getKeys() >> aliases.
+
+=head3 C<< is_empty() >>
+
+    say "No properties set" if $cpc->is_empty();
+
+This method returns true if there are no properties set. False otherwise.
+
+This method can also be called using the C<< isEmpty() >> alias.
+
+=head3 C<< has_property($key) >>
+
+    say "foo is set" if $cpc->has_property('foo');
+
+This method returns true if a property for C<< $key >> is set. False otherwise.
+
+This method can also be called using the C<< containsKey() >> alias.
+
+=head2 Set Properties
+
+=head3 C<< add_propertry( key => 'value' ) >>
+
+    $cpc->add_property( key  => 'value1' );
+    $cpc->add_property( key  => 'value2' );
+    $cpc->add_property( key2 => [ 'value1', 'value2' ] );
+
+This method sets a new property or adds values to existing properties. Old properties are not forgotten.
+
+Values can be a scalar or an array-ref for multiple values.
+
+This method can also be called using the C<< addProperty() >> alias.
+
+=head3 C<< delete_property($key) >>
+
+    $cpc->delete_property('foo');
+
+This method deletes a property specified by C<< $key >> from the object.
+
+This method can also be called using the C<< clearProperty() >> or C<< deleteProperty() >> aliases.
+
+=head3 C<< reset_property( key => 'value' ) >>
+
+This method is equivalent to C<< delete_property('key'); add_property(key => 'value' ); >> - which means any previously set property is forgotten.
+
+This method can also be called using the C<< set_property() >>, C<< setProperty() >>, or C<< changeProperty() >> aliases.
+
+=head3 C<< clear_properties() >>
+
+    $cpc->clear_properties();
+
+This method deletes all properties loaded.
+
+This method can also be called using the C<< clear() >> alias.
+
+=head1 SEE ALSO
+
+=over
+
+=item L<< Config::Properties >>
+
+=item L<< PropertiesConfiguration JavaDoc|http://commons.apache.org/configuration/apidocs/org/apache/commons/configuration/PropertiesConfiguration.html >>
+
+=back
+
 =head1 DEPENDENCIES
+
+=over
+
+=item perl-5.8.1
+
+=item L<< Encode >>
+
+=item L<< File::Basename >>
+
+=item L<< File::Slurp >>
+
+=item L<< File::Spec >>
+
+=item L<< List::Util >>
+
+=item L<< Params::Validate >>
+
+=item L<< String::Util >>
+
+=item L<< Text::Wrap >>
+
+=back
 
 =head1 BUGS AND LIMITATIONS
 
 Please report any bugs or feature requests to
 C<bug-config-properties-commons@rt.cpan.org>, or through the web interface at
 L<http://rt.cpan.org/Public/Dist/Display.html?Name=Config-Properties-Commons>
+
+=head1 TODO
+
+Provide support for remembering property format and order when parsed
 
 =head1 AUTHOR
 
