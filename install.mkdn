@@ -1,21 +1,26 @@
 % Installing Config-Properties-Extended
 % Mithun Ayachit
+%
 
 # Distribution page
 
-The latest and all previous releases for Config-Properties-Extended can be downloaded from https://metacpan.org/release/Config-Properties-Extended
+The latest and all previous releases for Config-Properties-Extended can
+be downloaded from
+https://metacpan.org/release/Config-Properties-Extended
 
 # Install using `cpanm`
 
-Config-Properties-Extended can be installed with `cpanm` using the following command
+Config-Properties-Extended can be installed with `cpanm` using the
+following command
 
-	cpanm .
+    cpanm .
 
 # Install using `Module::Build`
 
-Config-Properties-Extended can be installed with `Module::Build` using the following commands
+Config-Properties-Extended can be installed with `Module::Build` using
+the following commands
 
-	perl ./Build.PL
-	./Build
-	./Build test
-	./Build install
+    perl ./Build.PL
+    ./Build
+    ./Build test
+    ./Build install
