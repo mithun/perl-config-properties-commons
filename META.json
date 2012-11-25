@@ -1,5 +1,5 @@
 {
-   "abstract" : "Read and write Apache Commons",
+   "abstract" : "Read and write Apache Commons Configuration style Properties",
    "author" : [
       "Mithun Ayachit <mithun@cpan.org>"
    ],

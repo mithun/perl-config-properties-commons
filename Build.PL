@@ -15,9 +15,11 @@ local $| = 1;
 ####################
 
 my $builder = Module::Build->new(
-    module_name        => 'Config::Properties::Commons',
-    license            => 'perl',
-    dist_author        => 'Mithun Ayachit <mithun@cpan.org>',
+    module_name => 'Config::Properties::Commons',
+    license     => 'perl',
+    dist_author => 'Mithun Ayachit <mithun@cpan.org>',
+    dist_abstract =>
+        'Read and write Apache Commons Configuration style Properties',
     configure_requires => { 'Module::Build' => 0.38 },
     build_requires     => {
         'Test::More' => 0,
