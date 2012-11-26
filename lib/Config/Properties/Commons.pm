@@ -627,11 +627,11 @@ sub _load {
         my ( $key, $value ) = split( _sep_regex(), $line, 2 );
 
         # Verify key/value
-        if ( ( not( defined $key and defined $value ) )
-            or not hascontent($key) )
-        {
+        #   Key is required. Value can be empty
+        if ( not( defined $key and hascontent($key) ) ) {
             croak "Invalid key/value format! : $line \n";
         }
+        $value = '' unless ( defined $value and hascontent($value) );
 
         # Unescape
         $key   = _unesc_key($key);
@@ -687,10 +687,6 @@ sub _load {
                         File::Spec->catfile( $_basedir, $_file ) );
                 }
 
-                # Verify file
-                next if not $_file;
-                next if not -f $_file;
-
                 # Check if this is the current file being processed
                 if ( $_file eq $self->{_current_file}->{name} ) {
 
@@ -731,8 +727,8 @@ sub _interpolate {
     # Defaults to original
     my $int_key = '${' . $key . '}';
 
-    # Return if key is not defined
-    if ( not defined $self->{_properties}->{$key} ) {
+    # Return if key is not set
+    if ( not exists $self->{_properties}->{$key} ) {
         return $int_key;
     }
 
@@ -754,6 +750,8 @@ sub _interpolate {
         $int_key = $def_key;
     }
 
+    # Return empty if undef
+    return '' unless defined $int_key;
     return $int_key;
 } ## end sub _interpolate
 
@@ -792,6 +790,7 @@ sub _save {
     foreach my $key ( sort $_sorter keys %props ) {
         next unless defined $props{$key};
         my $value = $props{$key};
+        $value = '' if not defined $value;
 
         # Split value into tokens
         my @raw_value_tokens;
@@ -807,8 +806,9 @@ sub _save {
         # Escape
         $key = _esc_key($key);
         my @value_tokens;
-        foreach ( grep { defined $_ } @raw_value_tokens ) {
-            push @value_tokens, _esc_val( Encode::encode_utf8($_) );
+        foreach my $_rvt (@raw_value_tokens) {
+            $_rvt = '' unless defined $_rvt;
+            push @value_tokens, _esc_val( Encode::encode_utf8($_rvt) );
         }
 
         # Save
