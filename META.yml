@@ -29,7 +29,7 @@ no_index:
 provides:
   Config::Properties::Commons:
     file: lib/Config/Properties/Commons.pm
-    version: 0.01
+    version: 0.02
 requires:
   Encode: 2.12
   File::Basename: 0
@@ -45,4 +45,4 @@ resources:
   homepage: https://github.com/mithun/perl-config-properties-commons
   license: http://dev.perl.org/licenses/
   repository: git://github.com/mithun/perl-config-properties-commons.git
-version: 0.01
+version: 0.02

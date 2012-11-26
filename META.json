@@ -57,7 +57,7 @@
    "provides" : {
       "Config::Properties::Commons" : {
          "file" : "lib/Config/Properties/Commons.pm",
-         "version" : "0.01"
+         "version" : "0.02"
       }
    },
    "release_status" : "stable",
@@ -73,5 +73,5 @@
          "url" : "git://github.com/mithun/perl-config-properties-commons.git"
       }
    },
-   "version" : "0.01"
+   "version" : "0.02"
 }

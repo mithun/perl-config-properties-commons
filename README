@@ -167,9 +167,9 @@ The following options can be provided to the constructor.
 
 -   save_combine_tokens
 
-    When true, keys with multiple values are saved/written on multiple
-    lines. Otherwise they are joined using a ', ' and written to a
-    single line. Defaults to true.
+    When true, keys with multiple values are joined using the
+    token_delimiter and written to a single line. Otherwise they are
+    saved/written on multiple lines. Defaults to false.
 
 -   save_wrapped
 
