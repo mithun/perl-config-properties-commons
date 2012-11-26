@@ -2,6 +2,12 @@
 % Mithun Ayachit
 %
 
+# 0.02
+
+-   Correct `save_combined_tokens` documentation in POD
+-   Allow empty values to be parsed and set. This means undef values are
+    string-ified to empty strings
+
 # 0.01
 
 -   Initial Version
