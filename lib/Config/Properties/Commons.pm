@@ -1170,9 +1170,7 @@ before returning.
 
 =item save_combine_tokens
 
-When true, keys with multiple values are saved/written on multiple
-lines. Otherwise they are joined using a C<< ', ' >> and written to a
-single line. Defaults to true.
+When true, keys with multiple values are joined using the I<< token_delimiter >> and written to a single line. Otherwise they are saved/written on multiple lines. Defaults to false.
 
 =item save_wrapped
 
