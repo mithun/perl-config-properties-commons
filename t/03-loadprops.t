@@ -36,6 +36,8 @@ $cpc->load("${data_dir}/00/prop1");
 my %prop1         = $cpc->properties();
 my @loaded_files1 = $cpc->get_files_loaded();
 
+# p %prop1;
+
 # Verify Files loaded
 cmp_deeply(
 
@@ -57,10 +59,11 @@ cmp_deeply(
     # Expected
     {
         # From prop1
-        'key1'     => 'value1',
-        'key2'     => 'value2',
-        'key3'     => 'value3',
-        'key\:foo' => 'bar',
+        'key1'      => 'value1',
+        'key2'      => 'value2',
+        'key3'      => 'value3',
+        'key\:foo'  => 'bar',
+        'blank_key' => '',
 
         # From prop2
         'key' => 'value',

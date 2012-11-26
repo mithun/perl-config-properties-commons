@@ -648,6 +648,7 @@ sub _load {
         if ( defined $options{token_delimiter} ) {
             my $_delim = $options{token_delimiter};
             @tokens = split( qr/(?<!\\) $_delim \s*/x, $value );
+            push( @tokens, $value ) unless scalar(@tokens);
         }
         else {
             push( @tokens, $value );

@@ -8,3 +8,5 @@ key3   value3
 key\:foo = bar
 
 include = prop2
+
+blank_key
