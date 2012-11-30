@@ -2,6 +2,12 @@
 % Mithun Ayachit
 %
 
+# 0.03
+
+- Fix CPANTesters failures for:
+	- Bad `Data::Printer` usage. Oops.
+	- Fix _unescaped regex_ errors on perl-5.17+
+
 # 0.02
 
 -   Correct `save_combined_tokens` documentation in POD

@@ -21,7 +21,7 @@ use Params::Validate qw(validate_with validate_pos :types);
 #######################
 # VERSION
 #######################
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 #######################
 # PARAM SPECS
@@ -658,8 +658,8 @@ sub _load {
         my @interpolated_tokens;
         if ( $options{interpolation} ) {
             foreach my $token (@tokens) {
-                $token =~ s{(?<!\\)\$\{([^\}]+)\}}
-                    { $self->_interpolate({key => $1, options => \%options,}) }gex;
+                $token
+                    =~ s/(?<!\\)\$\{([^}]+)\}/ $self->_interpolate({key => $1, options => \%options,}) /gex;
                 push( @interpolated_tokens, $token );
             }
         } ## end if ( $options{interpolation...})

@@ -16,7 +16,7 @@ local $| = 1;
 ####################
 use Config::Properties::Commons;
 
-use Data::Printer;
+# use Data::Printer;
 
 ####################
 # RUN TESTS
