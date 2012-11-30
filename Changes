@@ -2,6 +2,13 @@ Version History for Config-Properties-Commons
 Mithun Ayachit
 
 
+0.03
+====
+
+-   Fix CPANTesters failures for:
+    -   Bad Data::Printer usage. Oops.
+    -   Fix unescaped regex errors on perl-5.17+
+
 0.02
 ====
 
