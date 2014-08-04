@@ -3,14 +3,14 @@ abstract: 'Read and write Apache Commons Configuration style Properties'
 author:
   - 'Mithun Ayachit <mithun@cpan.org>'
 build_requires:
-  File::Temp: 0.14
-  Test::Deep: 0
-  Test::More: 0
-  version: 0
+  File::Temp: '0.14'
+  Test::Deep: '0'
+  Test::More: '0'
+  version: '0'
 configure_requires:
-  Module::Build: 0.38
+  Module::Build: '0.38'
 dynamic_config: 1
-generated_by: 'Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921'
+generated_by: 'Module::Build version 0.4205, CPAN::Meta::Converter version 2.141170'
 keywords:
   - java
   - properties
@@ -20,29 +20,29 @@ keywords:
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
+  version: '1.4'
 name: Config-Properties-Commons
 no_index:
   directory:
-    - '.author'
+    - .author
     - t
 provides:
   Config::Properties::Commons:
     file: lib/Config/Properties/Commons.pm
-    version: 0.03
+    version: '0.04'
 requires:
-  Encode: 2.12
-  File::Basename: 0
-  File::Slurp: 0
-  File::Spec: 0
-  List::Util: 0
-  Params::Validate: 1.03
-  String::Util: 0
-  Text::Wrap: 0
+  Encode: '2.12'
+  File::Basename: '0'
+  File::Slurp: '0'
+  File::Spec: '0'
+  List::Util: '0'
+  Params::Validate: '1.03'
+  String::Util: '0'
+  Text::Wrap: '0'
   perl: v5.8.1
 resources:
   bugtracker: http://rt.cpan.org/Public/Dist/Display.html?Name=Config-Properties-Commons
   homepage: https://github.com/mithun/perl-config-properties-commons
   license: http://dev.perl.org/licenses/
   repository: git://github.com/mithun/perl-config-properties-commons.git
-version: 0.03
+version: '0.04'

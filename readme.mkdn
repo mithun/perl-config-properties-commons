@@ -34,14 +34,13 @@ Configuration style Properties
     # Save
     $cpc->save('conf.properties');
 
-
-
 # DESCRIPTION
 
 `Config::Properties::Commons` is an attempt to provide a Perl API
-to read and write [Apache Commons Configuration](http://commons.apache.org/configuration/) style `.properties` files.
+to read and write [Apache Commons
+Configuration](http://commons.apache.org/configuration/) style `.properties` files.
 
-This module is an extension of [Config::Properties](http://search.cpan.org/perldoc?Config::Properties) and provides a
+This module is an extension of [Config::Properties](https://metacpan.org/pod/Config::Properties) and provides a
 similar API, but is not fully backwards compatible.
 
 # PROPERITES FILE SYNTAX
@@ -75,7 +74,8 @@ A sample file syntax recognized by this module is shown below.
     base   = /etc/myapp
     config = ${base}/config
 
-The complete syntax reference can be found at the [PropertiesConfiguration API Doc](http://commons.apache.org/configuration/apidocs/org/apache/commons/configuration/PropertiesConfiguration.html).
+The complete syntax reference can be found at the [PropertiesConfiguration API
+Doc](http://commons.apache.org/configuration/apidocs/org/apache/commons/configuration/PropertiesConfiguration.html).
 
 # METHODS
 
@@ -388,20 +388,20 @@ This method can also be called using the `clear()` alias.
 
 # SEE ALSO
 
-- [Config::Properties](http://search.cpan.org/perldoc?Config::Properties)
+- [Config::Properties](https://metacpan.org/pod/Config::Properties)
 - [PropertiesConfiguration JavaDoc](http://commons.apache.org/configuration/apidocs/org/apache/commons/configuration/PropertiesConfiguration.html)
 
 # DEPENDENCIES
 
 - perl-5.8.1
-- [Encode](http://search.cpan.org/perldoc?Encode)
-- [File::Basename](http://search.cpan.org/perldoc?File::Basename)
-- [File::Slurp](http://search.cpan.org/perldoc?File::Slurp)
-- [File::Spec](http://search.cpan.org/perldoc?File::Spec)
-- [List::Util](http://search.cpan.org/perldoc?List::Util)
-- [Params::Validate](http://search.cpan.org/perldoc?Params::Validate)
-- [String::Util](http://search.cpan.org/perldoc?String::Util)
-- [Text::Wrap](http://search.cpan.org/perldoc?Text::Wrap)
+- [Encode](https://metacpan.org/pod/Encode)
+- [File::Basename](https://metacpan.org/pod/File::Basename)
+- [File::Slurp](https://metacpan.org/pod/File::Slurp)
+- [File::Spec](https://metacpan.org/pod/File::Spec)
+- [List::Util](https://metacpan.org/pod/List::Util)
+- [Params::Validate](https://metacpan.org/pod/Params::Validate)
+- [String::Util](https://metacpan.org/pod/String::Util)
+- [Text::Wrap](https://metacpan.org/pod/Text::Wrap)
 
 # BUGS AND LIMITATIONS
 
@@ -423,4 +423,4 @@ Mithun Ayachit `mithun@cpan.org`
 Copyright (c) 2012, Mithun Ayachit. All rights reserved.
 
 This module is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself. See [perlartistic](http://search.cpan.org/perldoc?perlartistic).
+under the same terms as Perl itself. See [perlartistic](https://metacpan.org/pod/perlartistic).

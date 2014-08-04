@@ -1,6 +1,8 @@
-% Installing Config-Properties-Extended
-% Mithun Ayachit
-%
+---
+author:
+- Mithun Ayachit
+title: 'Installing Config-Properties-Extended'
+...
 
 # Distribution page
 

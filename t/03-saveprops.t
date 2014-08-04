@@ -24,7 +24,11 @@ use Config::Properties::Commons;
 
 # Init object
 #   with defaults
-my $cpc = Config::Properties::Commons->new( defaults => { foo => 'bar', } );
+my $cpc = Config::Properties::Commons->new(
+    defaults => {
+        foo => 'bar',
+    }
+);
 
 # Add property
 $cpc->add_property( key1 => 'value1' );

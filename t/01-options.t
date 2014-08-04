@@ -48,7 +48,7 @@ my $got_options = $cpc->_set_options(
 
 # Remove values that are 'known' subroutine references
 foreach (qw(callback save_sorter)) {
-    next unless exists $got_options->{$_};
+  next unless exists $got_options->{$_};
     if ( ref $got_options->{$_} eq 'CODE' ) {
         delete $got_options->{$_};
     }

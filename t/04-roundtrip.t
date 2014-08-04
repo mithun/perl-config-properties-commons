@@ -39,11 +39,15 @@ my %props_set = (
 
 # set
 foreach ( keys %props_set ) {
-    $cpc->set_property( $_ => $props_set{$_}, );
-}
+    $cpc->set_property(
+        $_ => $props_set{$_},
+    );
+} ## end foreach ( keys %props_set )
 
 # Get tempfile
-my $temp = File::Temp->new( DIR => $data_dir, );
+my $temp = File::Temp->new(
+    DIR => $data_dir,
+);
 my $tempfile = $temp->filename();
 
 # Save

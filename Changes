@@ -1,6 +1,12 @@
 Version History for Config-Properties-Commons
 Mithun Ayachit
 
+0.04
+====
+
+-   Fix issue where token delimiters were not being escaped/unescaped.
+    Thanks to Roy Ledochowski for repoting the bug
+-   Allow option aliases to be used when initializing the object
 
 0.03
 ====

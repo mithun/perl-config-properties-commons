@@ -68,13 +68,14 @@ cmp_deeply(
         # From prop2
         'key' => 'value',
         'longvalue' =>
-            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         'tokens_on_a_line'         => [ 'first token', 'second token' ],
         'tokens_on_multiple_lines' => [ 'first token', 'second token' ],
         'commas.escaped'           => q{Hi, what'up?},
         'base.prop'                => '/base',
         'first.prop'               => '/base/first',
-        'second.prop' => '/base/first/second', },
+        'second.prop'              => '/base/first/second',
+    },
     'Properties Loaded #1',
 );
 
@@ -85,7 +86,10 @@ my $file3 = "${data_dir}/00/prop3";
 my $file4 = "${data_dir}/01/prop4";
 
 open( my $fh3, '<', $file3 ) or die "Failed to open $file3 : $!\n";
-$cpc->load( $fh3, includes_basepath => "${data_dir}/01", );
+$cpc->load(
+    $fh3,
+    includes_basepath => "${data_dir}/01",
+);
 close($fh3);
 
 my %prop2         = $cpc->properties();
@@ -125,8 +129,7 @@ cmp_deeply(
 #   and force array
 $cpc->clear_properties();
 $cpc->load(
-    $file3,
-    {
+    $file3, {
         process_includes     => 0,
         force_value_arrayref => 1,
     }
@@ -142,8 +145,7 @@ cmp_deeply(
     \@loaded_files3,
 
     # Expected
-    [ $file3, ],
-    'Files loaded #3',
+    [ $file3, ], 'Files loaded #3',
 );
 
 # Verify Properties Loaded
@@ -153,7 +155,9 @@ cmp_deeply(
     {%prop3},
 
     # Expected
-    { include => [ 'prop4', ], },
+    {
+        include => [ 'prop4', ],
+    },
     'Properties Loaded #3',
 );
 
