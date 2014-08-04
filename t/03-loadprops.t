@@ -71,7 +71,7 @@ cmp_deeply(
             'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         'tokens_on_a_line'         => [ 'first token', 'second token' ],
         'tokens_on_multiple_lines' => [ 'first token', 'second token' ],
-        'commas.escaped'           => q{Hi\, what'up?},
+        'commas.escaped'           => q{Hi, what'up?},
         'base.prop'                => '/base',
         'first.prop'               => '/base/first',
         'second.prop' => '/base/first/second', },

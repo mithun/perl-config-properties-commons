@@ -79,8 +79,10 @@ push my @utils_list, qw(
     _sep_regex
     _esc_key
     _esc_val
+    _esc_delim
     _unesc_key
     _unesc_val
+    _unesc_delim
     _wrap
 );
 
@@ -95,4 +97,3 @@ can_ok( 'Config::Properties::Commons', @utils_list );
 ####################
 done_testing();
 exit 0;
-

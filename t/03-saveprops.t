@@ -45,6 +45,7 @@ cmp_deeply(
 # Set
 $cpc->set_property( key2 => [ 'value1', 'value2', ] );
 $cpc->set_property( key3 => 'value1' );
+$cpc->set_property( key4 => 'value4.1,value4.2' );
 cmp_deeply(
 
     # Got
@@ -56,6 +57,7 @@ cmp_deeply(
         key1 => [ 'value1', 'value2' ],
         key2 => [ 'value1', 'value2' ],
         key3 => 'value1',
+        key4 => 'value4.1,value4.2',
     },
 );
 
@@ -79,6 +81,7 @@ key2 = value1
 key2 = value2
 
 key3 = value1
+key4 = value4.1\, value4.2
 
 ###############
 
@@ -91,6 +94,7 @@ foo : bar
 key1 : value1, value2
 key2 : value1, value2
 key3 : value1
+key4 : value4.1\, value4.2
 
 #--
 

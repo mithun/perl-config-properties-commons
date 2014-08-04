@@ -197,7 +197,7 @@ my $pv_key_normalizer = sub {
     $_key = no_space($_key);
     $_key =~ s{^\-+}{}x;
     $_key = lc($_key);
-    return $_key;
+  return $_key;
 };
 
 #######################
@@ -246,7 +246,7 @@ sub new {
     }
 
     # Return object
-    return $self;
+  return $self;
 } ## end sub new
 
 #######################
@@ -259,7 +259,7 @@ sub new {
 sub load {
     my ( $self, $from, @args ) = @_;
     croak "File name/handle to load from is not provided"
-        unless defined $from;
+      unless defined $from;
 
     # Process Options
     my %options = %{ $self->_set_options(@args) };
@@ -279,9 +279,8 @@ sub load {
         $self->{_current_file}->{base} = dirname($file);
 
         # Process file?
-        return 1
-            if ($options{cache_files}
-            and $self->{_seen_files}->{$file} );
+      return 1
+          if ( $options{cache_files} and $self->{_seen_files}->{$file} );
 
         # Mark as seen
         $self->{_seen_files}->{$file} = 1;
@@ -302,7 +301,7 @@ sub load {
         }
     );
 
-    return 1;
+  return 1;
 } ## end sub load
 
 # =====================
@@ -310,23 +309,27 @@ sub load {
 # =====================
 sub get_property {
     my ( $self, $key ) = @_;
-    return unless exists $self->{_properties}->{$key};
-    return $self->{_properties}->{$key};
-}
+  return unless exists $self->{_properties}->{$key};
+  return $self->{_properties}->{$key};
+} ## end sub get_property
+
 
 sub require_property {
     my ( $self, $key ) = @_;
     croak "Property for $key is not set"
-        unless exists $self->{_properties}->{$key};
-    return $self->get_property($key);
+      unless exists $self->{_properties}->{$key};
+  return $self->get_property($key);
 } ## end sub require_property
+
 
 sub add_property {
     my ( $self, @args )   = @_;
     my ( $key,  $values ) = validate_pos(
-        @args,
-        { type => SCALAR, },
-        { type => SCALAR | ARRAYREF, },
+        @args, {
+            type => SCALAR,
+        }, {
+            type => SCALAR | ARRAYREF,
+        },
     );
 
     my @new_values;
@@ -335,9 +338,9 @@ sub add_property {
     @new_values = ref($values) ? @{$values} : ($values);
 
     if ( defined $old_value ) {
-        $save = [ ( ref($old_value) ? @{$old_value} : $old_value ),
-            @new_values ];
-    }
+        $save
+          = [ ( ref($old_value) ? @{$old_value} : $old_value ), @new_values ];
+    } ## end if ( defined $old_value)
     else {
         if ( $self->{_options}->{force_value_arrayref} ) {
             $save = [@new_values];
@@ -345,12 +348,12 @@ sub add_property {
         else {
             if   ( scalar(@new_values) > 1 ) { $save = [@new_values]; }
             else                             { $save = $new_values[0]; }
-        }
+        } ## end else [ if ( $self->{_options}...)]
     } ## end else [ if ( defined $old_value)]
 
-    return unless defined $save;
+  return unless defined $save;
     $self->{_properties}->{$key} = $save;
-    return 1;
+  return 1;
 } ## end sub add_property
 
 # =====================
@@ -369,15 +372,16 @@ sub properties {
             my $_p = $_prop;
             $_p =~ s{^${prefix}}{}gx;
             $props{$_p} = $_props{$_prop};
-        }
+        } ## end foreach my $_prop ( grep { ...})
     } ## end if ( defined $prefix )
     else {
         %props = %_props;
     }
 
-    return %props if wantarray;
-    return {%props};
+  return %props if wantarray;
+  return {%props};
 } ## end sub properties
+
 
 sub property_names {
     my ( $self, $prefix ) = @_;
@@ -387,21 +391,23 @@ sub property_names {
     if ( defined $prefix ) {
         @names = grep { /^${prefix}/x } @names;
     }
-    return @names;
+  return @names;
 } ## end sub property_names
+
 
 sub is_empty {
     my ($self) = @_;
     my @keys = $self->property_names();
-    return if scalar(@keys);
-    return 1;
+  return if scalar(@keys);
+  return 1;
 } ## end sub is_empty
+
 
 sub has_property {
     my ( $self, @args ) = @_;
     my $val = $self->get_property(@args);
-    return 1 if defined $val;
-    return;
+  return 1 if defined $val;
+  return;
 } ## end sub has_property
 
 # =====================
@@ -409,27 +415,27 @@ sub has_property {
 # =====================
 sub delete_property {
     my ( $self, $key ) = @_;
-    return
-        unless ( defined $key
-        and hascontent($key) );
+  return unless ( defined $key and hascontent($key) );
 
-    return 1 unless exists $self->{_properties}->{$key};
+  return 1 unless exists $self->{_properties}->{$key};
     delete $self->{_properties}->{$key};
-    return 1;
+  return 1;
 } ## end sub delete_property
+
 
 sub clear_properties {
     my ($self) = @_;
     $self->{_properties} = {};
     $self->{_seen_files} = {};
-    return 1;
+  return 1;
 } ## end sub clear_properties
+
 
 sub reset_property {
     my ( $self, @args ) = @_;
     $self->delete_property(@args) or return;
     $self->add_property(@args)    or return;
-    return 1;
+  return 1;
 } ## end sub reset_property
 
 # =====================
@@ -442,23 +448,33 @@ sub save_to_string {
     my %options = %{ $self->_set_options(@args) };
 
     # Get string to save
-    my $save_string = $self->_save( { options => \%options, } );
+    my $save_string = $self->_save(
+        {
+            options => \%options,
+        }
+    );
 
-    return $save_string;
+  return $save_string;
 } ## end sub save_to_string
+
 
 sub save {
     my ( $self, $to, @args ) = @_;
-    return unless defined $to;
+  return unless defined $to;
 
     # Get a string dump
     my $str = $self->save_to_string(@args);
 
     # Write to file/handle
-    write_file( $to, { binmode => ':utf8', }, Encode::encode_utf8($str) );
+    write_file(
+        $to, {
+            binmode => ':utf8',
+        },
+        Encode::encode_utf8($str)
+    );
 
     # Done
-    return 1;
+  return 1;
 } ## end sub save
 
 # =====================
@@ -467,8 +483,8 @@ sub save {
 sub get_files_loaded {
     my ($self) = @_;
     my @files = sort { lc $a cmp lc $b } keys %{ $self->{_seen_files} };
-    return @files;
-}
+  return @files;
+} ## end sub get_files_loaded
 
 #######################
 # METHOD ALIASES
@@ -531,8 +547,8 @@ sub _set_options {
         # Resolve Aliases
         if ( exists $option_aliases{$_opt} ) {
             $merged_options->{ $option_aliases{$_opt} }
-                = $in_options->{$_opt};
-        }
+              = $in_options->{$_opt};
+        } ## end if ( exists $option_aliases...)
         else {
             $merged_options->{$_opt} = $in_options->{$_opt};
         }
@@ -557,7 +573,7 @@ sub _set_options {
 
     );
 
-    return \%valid_options;
+  return \%valid_options;
 } ## end sub _set_options
 
 # =====================
@@ -569,7 +585,7 @@ sub _load {
     my %options = $in->{options} ? %{ $in->{options} } : ();
 
     # Check for empty file
-    return 1 unless @lines;
+  return 1 unless @lines;
 
     # Check and remote byte order mark
     if ( $lines[0] =~ m{^\x{FEFF}}x ) { shift @lines; }
@@ -584,13 +600,16 @@ sub _load {
         $line = fullchomp($line);
 
         # Skip Blank
-        next unless hascontent($line);
+      next unless hascontent($line);
 
         # Skip Comments
-        next if ( $line =~ m{^\s*(?:\#|\!)}x );
+      next if ( $line =~ m{^\s*(?:\#|\!)}x );
 
         # Trim leading whitespace
-        $line = trim( $line, right => 0, );
+        $line = trim(
+            $line,
+            right => 0,
+        );
 
         # Check for wrapped lines
         if ( $line =~ m{(?<!\\)\\\s*$}x ) {
@@ -600,10 +619,10 @@ sub _load {
             while (@lines) {
                 my $_wline = shift @lines;
                 $_wline = fullchomp($_wline);
-                next unless hascontent($_wline);
+              next unless hascontent($_wline);
 
                 push @wrapped_lines, $_wline;
-                last unless ( $_wline =~ m{(?<!\\)\\\s*$}x );
+              last unless ( $_wline =~ m{(?<!\\)\\\s*$}x );
             } ## end while (@lines)
 
             # Join them
@@ -614,7 +633,10 @@ sub _load {
                 $_wline =~ s{\\\s*$}{}x;
 
                 # Remove leading whitespace
-                $_wline = trim( $_wline, right => 0, );
+                $_wline = trim(
+                    $_wline,
+                    right => 0,
+                );
 
                 # Save
                 push @unwrapped, $_wline;
@@ -639,17 +661,22 @@ sub _load {
 
         # Perform callback
         ( $key, $value ) = $options{callback}->( $key, $value );
-        next
-            unless ( ( defined $key and defined $value )
-            and hascontent($key) );
+      next
+          unless ( ( defined $key and defined $value ) and hascontent($key) );
 
         # Process tokens
         my @tokens;
-        if ( defined $options{token_delimiter} ) {
-            my $_delim = $options{token_delimiter};
-            @tokens = split( qr/(?<!\\) $_delim \s*/x, $value );
-            push( @tokens, $value ) unless scalar(@tokens);
-        }
+        if ( hascontent($value) ) {
+            if ( defined $options{token_delimiter} ) {
+                my $_delim = $options{token_delimiter};
+                foreach my $_token ( _split_tokens( $value, $_delim ) ) {
+                    push( @tokens, _unesc_delim( $_token, $_delim ) );
+                }
+            } ## end if ( defined $options{...})
+            else {
+                push( @tokens, $value );
+            }
+        } ## end if ( hascontent($value...))
         else {
             push( @tokens, $value );
         }
@@ -659,9 +686,9 @@ sub _load {
         if ( $options{interpolation} ) {
             foreach my $token (@tokens) {
                 $token
-                    =~ s/(?<!\\)\$\{([^}]+)\}/ $self->_interpolate({key => $1, options => \%options,}) /gex;
+                  =~ s/(?<!\\)\$\{([^}]+)\}/ $self->_interpolate({key => $1, options => \%options,}) /gex;
                 push( @interpolated_tokens, $token );
-            }
+            } ## end foreach my $token (@tokens)
         } ## end if ( $options{interpolation...})
         else {
             push( @interpolated_tokens, @tokens );
@@ -675,7 +702,7 @@ sub _load {
             my $_basedir = $self->{_current_file}->{base};
             $_basedir = File::Spec->curdir() if not $_basedir;
             $_basedir = $options{includes_basepath}
-                if defined $options{includes_basepath};
+              if defined $options{includes_basepath};
 
             foreach my $_file (@interpolated_tokens) {
 
@@ -684,16 +711,16 @@ sub _load {
                     $_file = abs_path($_file);
                 }
                 else {
-                    $_file = abs_path(
-                        File::Spec->catfile( $_basedir, $_file ) );
-                }
+                    $_file
+                      = abs_path( File::Spec->catfile( $_basedir, $_file ) );
+                } ## end else [ if ( File::Spec->file_name_is_absolute...)]
 
                 # Check if this is the current file being processed
                 if ( $_file eq $self->{_current_file}->{name} ) {
 
                     # Skip it. Otherwise this is an infinite loop
-                    next;
-                }
+                  next;
+                } ## end if ( $_file eq $self->...)
 
                 # Load file
                 my %tmp_cf = %{ $self->{_current_file} };
@@ -703,18 +730,18 @@ sub _load {
 
             # Move onto next line
             # i.e., do not save an 'include'
-            next;
+          next;
         } ## end if ( $options{process_includes...})
 
         # Save key/value
         my $tmp_fvaf = $self->{_options}->{force_value_arrayref};
         $self->{_options}->{force_value_arrayref}
-            = $options{force_value_arrayref};
+          = $options{force_value_arrayref};
         $self->add_property( $key, [@interpolated_tokens] );
         $self->{_options}->{force_value_arrayref} = $tmp_fvaf;
     } ## end while (@lines)
 
-    return 1;
+  return 1;
 } ## end sub _load
 
 # =====================
@@ -730,7 +757,7 @@ sub _interpolate {
 
     # Return if key is not set
     if ( not exists $self->{_properties}->{$key} ) {
-        return $int_key;
+      return $int_key;
     }
 
     # Get defined key
@@ -740,7 +767,7 @@ sub _interpolate {
     if ( ref $def_key ) {
 
         # Return if defined key has multiple values
-        return $int_key if ( scalar( @{$def_key} ) > 1 );
+      return $int_key if ( scalar( @{$def_key} ) > 1 );
 
         # Do interpolation if we are forcing array refs
         if ( $options{force_value_arrayref} ) {
@@ -752,8 +779,8 @@ sub _interpolate {
     }
 
     # Return empty if undef
-    return '' unless defined $int_key;
-    return $int_key;
+  return '' unless defined $int_key;
+  return $int_key;
 } ## end sub _interpolate
 
 # =====================
@@ -784,12 +811,12 @@ sub _save {
     # Do wrap?
     my $do_wrap = $options{save_wrapped};
     $do_wrap = 0
-        if ( ( $max_prop_len + $sep_len + 4 ) >= $options{save_wrapped_len} );
+      if ( ( $max_prop_len + $sep_len + 4 ) >= $options{save_wrapped_len} );
 
     # Cycle thru' properties
     my $_sorter = $options{save_sorter};
     foreach my $key ( sort $_sorter keys %props ) {
-        next unless defined $props{$key};
+      next unless defined $props{$key};
         my $value = $props{$key};
         $value = '' if not defined $value;
 
@@ -797,9 +824,9 @@ sub _save {
         my @raw_value_tokens;
         if ( ref($value) ) {
             croak "${key}'s value is an invalid reference!"
-                unless ( ref($value) eq 'ARRAY' );
+              unless ( ref($value) eq 'ARRAY' );
             @raw_value_tokens = @{$value};
-        }
+        } ## end if ( ref($value) )
         else {
             @raw_value_tokens = ($value);
         }
@@ -809,13 +836,20 @@ sub _save {
         my @value_tokens;
         foreach my $_rvt (@raw_value_tokens) {
             $_rvt = '' unless defined $_rvt;
-            push @value_tokens, _esc_val( Encode::encode_utf8($_rvt) );
-        }
+            if ( defined $options{token_delimiter} ) {
+                push @value_tokens,
+                  _esc_delim( _esc_val( Encode::encode_utf8($_rvt) ),
+                    $options{token_delimiter} );
+            } ## end if ( defined $options{...})
+            else {
+                push @value_tokens, _esc_val( Encode::encode_utf8($_rvt) );
+            }
+        } ## end foreach my $_rvt (@raw_value_tokens)
 
         # Save
         if ( $options{save_combine_tokens} ) {
             croak "Cannot combine tokens without a delimiter!"
-                unless defined $options{token_delimiter};
+              unless defined $options{token_delimiter};
 
             # Get delimiter
             # Append a whitespace to it for read-ability
@@ -829,9 +863,11 @@ sub _save {
             if ($do_wrap) {
                 $_val_str = _wrap(
                     {
-                        string => $_val_str,
-                        options =>
-                            { %options, key_len => length($key) + $sep_len, },
+                        string  => $_val_str,
+                        options => {
+                            %options,
+                            key_len => length($key) + $sep_len,
+                        },
                     }
                 );
             } ## end if ($do_wrap)
@@ -855,7 +891,8 @@ sub _save {
                         {
                             string  => $token,
                             options => {
-                                %options, key_len => length($key) + $sep_len,
+                                %options,
+                                key_len => length($key) + $sep_len,
                             },
                         }
                     );
@@ -875,7 +912,7 @@ sub _save {
     $out_str .= "\n" . fullchomp( $options{save_footer} ) . "\n\n";
 
     # Done
-    return $out_str;
+  return $out_str;
 } ## end sub _save
 
 #######################
@@ -893,7 +930,7 @@ sub _sep_regex {
     #   3. Whitespace
     # Where neither of them are backslash escaped
     # Also, any surrounding whitespace is ignored
-    return qr{\s*(?: (?: (?<!\\) [\=\:\s] ) )\s*}x;
+  return qr{\s*(?: (?: (?<!\\) [\=\:\s] ) )\s*}x;
 } ## end sub _sep_regex
 
 # =====================
@@ -914,8 +951,9 @@ sub _esc_key {
     # Escape whitespace
     $key =~ s{\s}{'\ '}gex;
 
-    return $key;
+  return $key;
 } ## end sub _esc_key
+
 
 sub _esc_val {
     my ($val) = @_;
@@ -923,8 +961,17 @@ sub _esc_val {
     # Escape unprintable
     $val =~ s{([^\x20-\x7e])}{sprintf ("\\u%04x", ord $1)}gex;
 
-    return $val;
+  return $val;
 } ## end sub _esc_val
+
+
+sub _esc_delim {
+    my ( $val, $delim ) = @_;
+  return $val if not defined $delim;
+  return $val if not hascontent($delim);
+  return $val if not hascontent($val);
+  return join( "\\$delim ", _split_tokens( $val, $delim ) );
+} ## end sub _esc_delim
 
 # =====================
 # Unescape Routines
@@ -944,8 +991,9 @@ sub _unesc_key {
     # Un-escape whitespace
     $key =~ s{(?<!\\)\\\s}{' '}gex;
 
-    return $key;
+  return $key;
 } ## end sub _unesc_key
+
 
 sub _unesc_val {
     my ($val) = @_;
@@ -953,8 +1001,15 @@ sub _unesc_val {
     # Un-escape unprintable
     $val =~ s{\\u([\da-fA-F]{4})}{chr(hex($1))}gex;
 
-    return $val;
+  return $val;
 } ## end sub _unesc_val
+
+
+sub _unesc_delim {
+    my ( $val, $delim ) = @_;
+    $val =~ s{ \\ $delim }{$delim}gxi;
+  return $val;
+} ## end sub _unesc_delim
 
 # =====================
 # VALUE WRAPPER
@@ -967,7 +1022,7 @@ sub _wrap {
     # Wrap column width
     my $wrap_to = $options{save_wrapped_len} - $options{key_len};
 
-## no critic (PackageVars)
+    ## no critic (PackageVars)
 
     # Text::Wrap settings
     local $Text::Wrap::columns   = $wrap_to;      # Columns
@@ -976,11 +1031,11 @@ sub _wrap {
     local $Text::Wrap::separator = "\\\n";        # Use a '\' separator
     local $Text::Wrap::huge = 'overflow';  # Leave unbreakable lines alone
 
-## use critic
+    ## use critic
 
     # Wrap
     my $wrapped = Text::Wrap::wrap(
-        '',                                # Initial tab is empty
+        '',  # Initial tab is empty
         ' ' x ( $options{key_len} + 1 ), # Subseq tab is aligned to end of key
         $text,                           # Text to wrap
     );
@@ -989,8 +1044,16 @@ sub _wrap {
     $wrapped = fullchomp($wrapped);
 
     # Return
-    return $wrapped;
+  return $wrapped;
 } ## end sub _wrap
+
+# =====================
+# TOKEN SPLITTER
+# =====================
+sub _split_tokens {
+    my ( $val, $delim ) = @_;
+  return split( qr/(?<!\\) $delim \s*/x, $val );
+} ## end sub _split_tokens
 
 #######################
 1;
