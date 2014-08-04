@@ -24,221 +24,29 @@ use Params::Validate qw(validate_with validate_pos :types);
 our $VERSION = '0.03';
 
 #######################
-# PARAM SPECS
-#######################
-
-# Load spec
-my %pv_load_spec = (
-
-    # List delimiter - this identifies multi-token values
-    token_delimiter => {
-        optional => 1,
-        type     => SCALAR | UNDEF,
-        default  => ',',
-    },
-
-    # Include keyword
-    include_keyword => {
-        optional => 1,
-        type     => SCALAR,
-        regex    => qr{^[^\s]+$}x,
-        default  => 'include',
-    },
-
-    # Include basedir
-    includes_basepath => {
-        optional => 1,
-        type     => SCALAR | UNDEF,
-        default  => undef,
-    },
-
-    # Process Includes?
-    process_includes => {
-        optional => 1,
-        type     => SCALAR,
-        regex    => qr{^[01]$}x,
-        default  => 1,
-    },
-
-    # Allow recursive includes?
-    cache_files => {
-        optional => 1,
-        type     => SCALAR,
-        regex    => qr{^[01]$}x,
-        default  => 1,
-    },
-
-    # Process property interpolation?
-    interpolation => {
-        optional => 1,
-        type     => SCALAR,
-        regex    => qr{^[01]$}x,
-        default  => 1,
-    },
-
-    # Force values to be array-refs
-    force_value_arrayref => {
-        optional => 1,
-        type     => SCALAR,
-        regex    => qr{^[01]$}x,
-        default  => 0,
-    },
-
-    # Allow callback
-    callback => {
-        optinal => 1,
-        type    => CODEREF,
-        default => sub { return @_; },
-    },
-
-    # Allow defaults
-    defaults => {
-        optional => 1,
-        type     => HASHREF,
-        default  => {},
-    },
-
-    # Allow filename for auto-load
-    load_file => {
-        optional => 1,
-        type     => SCALAR | HANDLE | UNDEF,
-        default  => undef,
-    },
-);
-
-# Save Spec
-my %pv_save_spec = (
-
-    # Save properties with multiple value tokens on a single line
-    save_combine_tokens => {
-        optional => 1,
-        type     => SCALAR,
-        regex    => qr{^[01]$}x,
-        default  => 0,
-    },
-
-    # Wrap and save
-    save_wrapped => {
-        optional => 1,
-        type     => SCALAR,
-        regex    => qr{^[01]$}x,
-        default  => 1,
-    },
-
-    # Wrap length
-    save_wrapped_len => {
-        optional => 1,
-        type     => SCALAR,
-        regex    => qr{^\d+$}x,
-        default  => 76,
-    },
-
-    # key=value separator
-    save_separator => {
-        optional => 1,
-        type     => SCALAR,
-        regex    => qr{^\s*[=:\s]\s*$}x,
-        default  => ' = ',
-    },
-
-    # Save sorting routine
-    save_sorter => {
-        optional => 1,
-        type     => CODEREF,
-        default  => sub ($$) { lc( $_[0] ) cmp lc( $_[1] ); },
-    },
-
-    # Save Header
-    save_header => {
-        optional => 1,
-        type     => SCALAR,
-        default  => '#' x 15,
-    },
-
-    # Save footer
-    save_footer => {
-        optional => 1,
-        type     => SCALAR,
-        default  => '#' x 15,
-    },
-);
-
-# Option aliases
-my %option_aliases = (
-
-    # __PACKAGE__
-    delimiter      => 'token_delimiter',
-    include        => 'include_keyword',
-    basepath       => 'includes_basepath',
-    includes_allow => 'process_includes',
-    cache          => 'cache_files',
-    interpolate    => 'interpolation',
-    force_arrayref => 'force_value_arrayref',
-    validate       => 'callback',
-    filename       => 'load_file',
-    single_line    => 'save_combine_tokens',
-    wrap           => 'save_wrapped',
-    columns        => 'save_wrapped_len',
-    separator      => 'save_separator',
-    header         => 'save_header',
-    footer         => 'save_footer',
-
-    # Java Style
-    setListDelimiter   => 'token_delimiter',
-    setInclude         => 'include_keyword',
-    setIncludesAllowed => 'process_includes',
-    setBasePath        => 'includes_basepath',
-);
-
-# Normalizer
-#   Allow leading '-' and make case-insensitive
-my $pv_key_normalizer = sub {
-    my ($_key) = @_;
-    $_key = no_space($_key);
-    $_key =~ s{^\-+}{}x;
-    $_key = lc($_key);
-  return $_key;
-};
-
-#######################
 # CONSTRUCTOR
 #######################
 sub new {
     my ( $class, @args ) = @_;
 
-    # Process Options
-    my %options = validate_with(
-
-        # Name used in validation errors
-        called => __PACKAGE__ . '::new',
-
-        # Options to process
-        params => \@args,
-
-        # Normalize key names.
-        normalize_keys => $pv_key_normalizer,
-
-        # Do not Allow extra options
-        allow_extra => 0,
-
-        # Option Spec
-        spec => { %pv_load_spec, %pv_save_spec, },
-    );
-
-    # Get default properties
-    my %defaults = %{ $options{defaults} };
-
     # Bless object
     my $self = {
-        _options      => \%options,
+        _options      => {},
         _seen_files   => {},
         _current_file => {
             name => '',
             base => '',
         },
-        _properties => {%defaults},
+        _properties => {},
     };
     bless $self, $class;
+
+    # Process Options
+    my %options = %{ $self->_set_options(@args) };
+    $self->{_options} = {%options};
+
+    # Get default properties
+    $self->{_properties} = $options{defaults};
 
     # Short-circuit _load_ if a filename is defined
     if ( defined $options{load_file} ) {
@@ -537,6 +345,185 @@ sub _set_options {
         }
     } ## end if (@args)
 
+    # ---------------------
+    # PARAM SPEC
+    # ---------------------
+
+    # Load spec
+    my %pv_load_spec = (
+
+        # List delimiter - this identifies multi-token values
+        token_delimiter => {
+            optional => 1,
+            type     => SCALAR | UNDEF,
+            default  => ',',
+        },
+
+        # Include keyword
+        include_keyword => {
+            optional => 1,
+            type     => SCALAR,
+            regex    => qr{^[^\s]+$}x,
+            default  => 'include',
+        },
+
+        # Include basedir
+        includes_basepath => {
+            optional => 1,
+            type     => SCALAR | UNDEF,
+            default  => undef,
+        },
+
+        # Process Includes?
+        process_includes => {
+            optional => 1,
+            type     => SCALAR,
+            regex    => qr{^[01]$}x,
+            default  => 1,
+        },
+
+        # Allow recursive includes?
+        cache_files => {
+            optional => 1,
+            type     => SCALAR,
+            regex    => qr{^[01]$}x,
+            default  => 1,
+        },
+
+        # Process property interpolation?
+        interpolation => {
+            optional => 1,
+            type     => SCALAR,
+            regex    => qr{^[01]$}x,
+            default  => 1,
+        },
+
+        # Force values to be array-refs
+        force_value_arrayref => {
+            optional => 1,
+            type     => SCALAR,
+            regex    => qr{^[01]$}x,
+            default  => 0,
+        },
+
+        # Allow callback
+        callback => {
+            optinal => 1,
+            type    => CODEREF,
+            default => sub { return @_; },
+        },
+
+        # Allow defaults
+        defaults => {
+            optional => 1,
+            type     => HASHREF,
+            default  => {},
+        },
+
+        # Allow filename for auto-load
+        load_file => {
+            optional => 1,
+            type     => SCALAR | HANDLE | UNDEF,
+            default  => undef,
+        },
+    );
+
+    # Save Spec
+    my %pv_save_spec = (
+
+        # Save properties with multiple value tokens on a single line
+        save_combine_tokens => {
+            optional => 1,
+            type     => SCALAR,
+            regex    => qr{^[01]$}x,
+            default  => 0,
+        },
+
+        # Wrap and save
+        save_wrapped => {
+            optional => 1,
+            type     => SCALAR,
+            regex    => qr{^[01]$}x,
+            default  => 1,
+        },
+
+        # Wrap length
+        save_wrapped_len => {
+            optional => 1,
+            type     => SCALAR,
+            regex    => qr{^\d+$}x,
+            default  => 76,
+        },
+
+        # key=value separator
+        save_separator => {
+            optional => 1,
+            type     => SCALAR,
+            regex    => qr{^\s*[=:\s]\s*$}x,
+            default  => ' = ',
+        },
+
+        # Save sorting routine
+        save_sorter => {
+            optional => 1,
+            type     => CODEREF,
+            default  => sub ($$) { lc( $_[0] ) cmp lc( $_[1] ); },
+        },
+
+        # Save Header
+        save_header => {
+            optional => 1,
+            type     => SCALAR,
+            default  => '#' x 15,
+        },
+
+        # Save footer
+        save_footer => {
+            optional => 1,
+            type     => SCALAR,
+            default  => '#' x 15,
+        },
+    );
+
+    # Option aliases
+    my %option_aliases = (
+
+        # __PACKAGE__
+        delimiter      => 'token_delimiter',
+        include        => 'include_keyword',
+        basepath       => 'includes_basepath',
+        includes_allow => 'process_includes',
+        cache          => 'cache_files',
+        interpolate    => 'interpolation',
+        force_arrayref => 'force_value_arrayref',
+        validate       => 'callback',
+        filename       => 'load_file',
+        single_line    => 'save_combine_tokens',
+        wrap           => 'save_wrapped',
+        columns        => 'save_wrapped_len',
+        separator      => 'save_separator',
+        header         => 'save_header',
+        footer         => 'save_footer',
+
+        # Java Style
+        setListDelimiter   => 'token_delimiter',
+        setInclude         => 'include_keyword',
+        setIncludesAllowed => 'process_includes',
+        setBasePath        => 'includes_basepath',
+    );
+
+    # Normalizer
+    #   Allow leading '-' and make case-insensitive
+    my $pv_key_normalizer = sub {
+        my ($_key) = @_;
+        $_key = no_space($_key);
+        $_key =~ s{^\-+}{}x;
+        $_key = lc($_key);
+      return $_key;
+    };
+
+    # ---------------------
+
     # Merge Options
     my $merged_options = $self->{_options};
     foreach my $_opt ( keys %{$in_options} ) {
@@ -573,7 +560,7 @@ sub _set_options {
 
     );
 
-  return \%valid_options;
+  return {%valid_options};
 } ## end sub _set_options
 
 # =====================
