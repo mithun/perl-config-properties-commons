@@ -21,7 +21,7 @@ use Params::Validate qw(validate_with validate_pos :types);
 #######################
 # VERSION
 #######################
-our $VERSION = '0.04';
+our $VERSION = '0.4.1';
 
 #######################
 # CONSTRUCTOR
@@ -1495,10 +1495,8 @@ This method can also be called using the C<< clear() >> alias.
 
 =head1 BUGS AND LIMITATIONS
 
-Please report any bugs or feature requests to
-C<bug-config-properties-commons@rt.cpan.org>, or through the web
-interface at
-L<http://rt.cpan.org/Public/Dist/Display.html?Name=Config-Properties-Commons>
+Please report any bugs or feature requests at
+L<https://github.com/mithun/perl-config-properties-commons/issues>
 
 =head1 TODO
 
@@ -1510,7 +1508,7 @@ Mithun Ayachit C<mithun@cpan.org>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright (c) 2012, Mithun Ayachit. All rights reserved.
+Copyright (c) 2014, Mithun Ayachit. All rights reserved.
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself. See L<perlartistic>.

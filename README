@@ -1,11 +1,15 @@
+
+
 NAME
-====
+
 
 Config::Properties::Commons - Read and write Apache Commons
 Configuration style Properties
 
+
+
 SYNOPSIS
-========
+
 
     use Config::Properties::Commons;
 
@@ -36,8 +40,10 @@ SYNOPSIS
     # Save
     $cpc->save('conf.properties');
 
+
+
 DESCRIPTION
-===========
+
 
 Config::Properties::Commons is an attempt to provide a Perl API to read
 and write Apache Commons Configuration style .properties files.
@@ -45,8 +51,10 @@ and write Apache Commons Configuration style .properties files.
 This module is an extension of Config::Properties and provides a similar
 API, but is not fully backwards compatible.
 
+
+
 PROPERITES FILE SYNTAX
-======================
+
 
 A sample file syntax recognized by this module is shown below.
 
@@ -80,18 +88,19 @@ A sample file syntax recognized by this module is shown below.
 The complete syntax reference can be found at the
 PropertiesConfiguration API Doc.
 
+
+
 METHODS
-=======
+
 
 new(%options)
--------------
 
     my $cpc = Config::Properties::Commons->new(\%options);
 
 This creates and returns a Config::Properties::Commons object.
 
+
 Options
--------
 
 The following options can be provided to the constructor.
 
@@ -104,20 +113,20 @@ The following options can be provided to the constructor.
 -   include_keyword
 
     Use this option to set the keyword that identifies additional files
-    to load. The default is include.
+    to load. The default is _include_.
 
 -   includes_basepath
 
     Use this option to set the base path for files being loaded via an
-    include. By default, files are expected to be in the same directory
-    as the parent file being loaded. If we are loading from a file
-    handle, then additional files are expected to be in the current
+    _include_. By default, files are expected to be in the same
+    directory as the parent file being loaded. If we are loading from a
+    file handle, then additional files are expected to be in the current
     directory.
 
 -   process_includes
 
     Use this option to toggle whether additional files are loaded via
-    include or not. Defaults to true.
+    _include_ or not. Defaults to true.
 
 -   cache_files
 
@@ -168,7 +177,7 @@ The following options can be provided to the constructor.
 -   save_combine_tokens
 
     When true, keys with multiple values are joined using the
-    token_delimiter and written to a single line. Otherwise they are
+    _token_delimiter_ and written to a single line. Otherwise they are
     saved/written on multiple lines. Defaults to false.
 
 -   save_wrapped
@@ -225,8 +234,8 @@ The following options can be provided to the constructor.
         save_header             header
         save_footer             footer
 
+
 Reading and Writing Files
--------------------------
 
 load($file, \%options)
 
@@ -237,7 +246,7 @@ This method reads, parses and loads the properties from a file-name or a
 file-handle. The file is read through a ':utf8' layer. An exception is
 thrown in case of parse failures.
 
-load() is an additive operation. i.e, you can load multiple files and
+load() is an _additive_ operation. i.e, you can load multiple files and
 any previously loaded properties are either updated or preserved.
 
     $cpc->load('file1');
@@ -282,12 +291,12 @@ get_files_loaded()
 
 This method returns a list of files loaded by the object. This, of
 course, is available only when properties were loaded via file-names and
-not handles. This also includes any include-ded files.
+not handles. This also includes any _include-ded_ files.
 
 This method can also be called using the getFileNames() alias.
 
+
 Get Properties
---------------
 
 get_property($key)
 
@@ -359,8 +368,8 @@ This method returns true if a property for $key is set. False otherwise.
 
 This method can also be called using the containsKey() alias.
 
+
 Set Properties
---------------
 
 add_propertry( key => 'value' )
 
@@ -401,14 +410,18 @@ This method deletes all properties loaded.
 
 This method can also be called using the clear() alias.
 
+
+
 SEE ALSO
-========
+
 
 -   Config::Properties
 -   PropertiesConfiguration JavaDoc
 
+
+
 DEPENDENCIES
-============
+
 
 -   perl-5.8.1
 -   Encode
@@ -420,28 +433,34 @@ DEPENDENCIES
 -   String::Util
 -   Text::Wrap
 
-BUGS AND LIMITATIONS
-====================
 
-Please report any bugs or feature requests to
-bug-config-properties-commons@rt.cpan.org, or through the web interface
-at
-http://rt.cpan.org/Public/Dist/Display.html?Name=Config-Properties-Commons
+
+BUGS AND LIMITATIONS
+
+
+Please report any bugs or feature requests at
+https://github.com/mithun/perl-config-properties-commons/issues
+
+
 
 TODO
-====
+
 
 Provide support for remembering property format and order when parsed
 
+
+
 AUTHOR
-======
+
 
 Mithun Ayachit mithun@cpan.org
 
-LICENSE AND COPYRIGHT
-=====================
 
-Copyright (c) 2012, Mithun Ayachit. All rights reserved.
+
+LICENSE AND COPYRIGHT
+
+
+Copyright (c) 2014, Mithun Ayachit. All rights reserved.
 
 This module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself. See perlartistic.

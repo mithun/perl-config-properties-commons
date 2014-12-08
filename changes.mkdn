@@ -4,6 +4,11 @@ author:
 title: 'Version History for Config-Properties-Commons'
 ...
 
+# 0.4.1
+
+-   No functional changes. Use semver and move bugtracker to
+    github-issues
+
 # 0.04
 
 -   Fix issue where token delimiters were not being escaped/unescaped.

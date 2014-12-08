@@ -48,7 +48,7 @@ my $builder = Module::Build->new(
         keywords  => [qw(java properties apache common config)],
         resources => {
             bugtracker =>
-              'http://rt.cpan.org/Public/Dist/Display.html?Name=Config-Properties-Commons',
+              'https://github.com/mithun/perl-config-properties-commons/issues',
             repository =>
               'git://github.com/mithun/perl-config-properties-commons.git',
             homepage =>

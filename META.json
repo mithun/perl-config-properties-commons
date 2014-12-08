@@ -4,7 +4,7 @@
       "Mithun Ayachit <mithun@cpan.org>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.4205",
+   "generated_by" : "Module::Build version 0.421",
    "keywords" : [
       "java",
       "properties",
@@ -57,13 +57,13 @@
    "provides" : {
       "Config::Properties::Commons" : {
          "file" : "lib/Config/Properties/Commons.pm",
-         "version" : "0.04"
+         "version" : "v0.4.1"
       }
    },
    "release_status" : "stable",
    "resources" : {
       "bugtracker" : {
-         "web" : "http://rt.cpan.org/Public/Dist/Display.html?Name=Config-Properties-Commons"
+         "web" : "https://github.com/mithun/perl-config-properties-commons/issues"
       },
       "homepage" : "https://github.com/mithun/perl-config-properties-commons",
       "license" : [
@@ -73,5 +73,5 @@
          "url" : "git://github.com/mithun/perl-config-properties-commons.git"
       }
    },
-   "version" : "0.04"
+   "version" : "v0.4.1"
 }
