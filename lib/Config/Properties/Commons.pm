@@ -21,7 +21,7 @@ use Params::Validate qw(validate_with validate_pos :types);
 #######################
 # VERSION
 #######################
-our $VERSION = '0.4.1';
+our $VERSION = '1.0.1';
 
 #######################
 # CONSTRUCTOR
